@@ -27,7 +27,7 @@ https://github.com/PennLINC/thalamocortical_development
 
 ### Atlas of Human Thalamocortical Connections
 https://github.com/PennLINC/thalamocortical_development/tree/main/thalamocortical_autotrack_template 
-(see below for how to use this with dsi-studio's autotrack)
+(see below for use instructions with dsi-studio's autotrack)
 
 ### Cubic Project Directory
 /cbica/projects/thalamocortical_development
@@ -44,8 +44,6 @@ thalamocortical_structuralconnectivity/template: thalamocortical template tracto
 thalamocortical_structuralconnectivity/individual: PNC and HCPD autotrack outputs 
 qsirecon_0.16.0RC3: PNC and HCPD qsirecon clones with dsi-studio gqi and fib outputs
 ```
-
-The thalamocortical autotrack atlas is located at `/cbica/projects/thalamocortical_development/software/thalamocortical_autotrack_template/dsi-studio/atlas/ICBM152_adult`, files ICBM152_adult.tt.gz and ICBM152_adult.tt.gz.txt contain tracts and tract names
 
 
 <br>
@@ -67,8 +65,8 @@ The thalamocortical structural connectivity tractography atlas was generated in 
 *Combine all regionally-specific thalamocortical connections into one tractography atlas*: After generating finalized, regionally-specific structural connections between the thalamus and individual cortical areas, all connections were combined into one .tt.gz file for use in this study and for public distribution. The final version of the atlas only includes connections that could be robustly and reliably delineated in both the high-resolution HCPYA diffusion template and in individual participant's data in the PNC (single-shell, b=1000) and HCPD (multi-shell, bs=1500,3000). This atlas is provided in [/thalamocortical_autotrack_template](https://github.com/PennLINC/thalamocortical_development/tree/main/thalamocortical_autotrack_template).   
 
 > To use this atlas with dsi-studio's autotrack to generate thalamocortical connections in individual participant data, both the "ICBM152_adult.tt.gz" (autotrack tracts) and "ICBM152_adult.tt.gz.txt" (tract name list) files are required and must be located in the location expected by the dsi-studio software.   
-> On a Mac, this location is dsi_studio/dsi_studio.app/Contents/MacOs/atlas/ICBM152_adult
-> In a container, this location is /opt/dsi-studio/atlas/ICBM152_adult. To use these files with a dsi-studio container, bind a local directory containing the contents of atlas/ICBM152_adult with these thalamus-specific .tt.gz and .tt.gz.txt files to the container directory (e.g., -B /cbica/projects/thalamocortical_development/software/thalamocortical_autotrack_template/dsi-studio/atlas/ICBM152_adult/:/opt/dsi-studio/atlas/ICBM152_adult). Or, bind the individual thalamus-specific .tt.gz and .tt.gz.txt files to their corresponding original files in /opt/dsi-studio/atlas/ICBM152_adult. 
+> On a Mac, this location is `dsi_studio/dsi_studio.app/Contents/MacOs/atlas/ICBM152_adult`
+> In a container, this location is `/opt/dsi-studio/atlas/ICBM152_adult`. To use these files with a dsi-studio container, bind a local directory containing the contents of atlas/ICBM152_adult with these thalamus-specific .tt.gz and .tt.gz.txt files to the container directory (e.g., -B /cbica/projects/thalamocortical_development/software/thalamocortical_autotrack_template/dsi-studio/atlas/ICBM152_adult/:/opt/dsi-studio/atlas/ICBM152_adult). Or, bind the individual thalamus-specific .tt.gz and .tt.gz.txt files to their corresponding original files in /opt/dsi-studio/atlas/ICBM152_adult. 
 
 ### Diffusion MRI Preprocessing and Reconstruction (PNC and HCP Development)
 Diffusion MRI dat 
