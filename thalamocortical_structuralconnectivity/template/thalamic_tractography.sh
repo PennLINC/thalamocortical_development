@@ -1,0 +1,39 @@
+#A script to generate thalamic tractography. Identifies 2 million streamlines with endpoints in the left thalamus and 2 million streamlines with endpoints in the right thalamus 
+
+singularity exec -B /cbica/projects/thalamocortical_development:/mnt /cbica/projects/thalamocortical_development/software/dsistudio-latest.simg dsi_studio --action=trk \
+--source=/mnt/Templates/QSDRTemplate_HCP1065YA_ICBM1522009a/HCP1065.1.25mm.fib.gz \
+--end=FreeSurferDKT_Subcortical:left_thalamus_proper \
+--roa=FreeSurferDKT_Tissue:right_cerebral_white_matter \
+--fiber_count=2000000 \
+--threshold_index=qa \
+--fa_threshold=0 \
+--turning_angle=0 \
+--step_size=0 \
+--min_length=10 \
+--max_length=300 \
+--method=0 \
+--otsu_threshold=0.45 \
+--smoothing=1 \
+--tip_iteration=0 \
+--random_seed=1 \
+--thread_count=8 \
+--output=/mnt/thalamocortical_structuralconnectivity/template/LH-thalamic-tractography.tt.gz
+
+singularity exec -B /cbica/projects/thalamocortical_development:/mnt /cbica/projects/thalamocortical_development/software/dsistudio-latest.simg dsi_studio --action=trk \
+--source=/mnt/Templates/QSDRTemplate_HCP1065YA_ICBM1522009a/HCP1065.1.25mm.fib.gz \
+--end=FreeSurferDKT_Subcortical:right_thalamus_proper \
+--roa=FreeSurferDKT_Tissue:left_cerebral_white_matter \
+--fiber_count=2000000 \
+--threshold_index=qa \
+--fa_threshold=0 \
+--turning_angle=0 \
+--step_size=0 \
+--min_length=10 \
+--max_length=300 \
+--method=0 \
+--otsu_threshold=0.45 \
+--smoothing=1 \
+--tip_iteration=0 \
+--random_seed=1 \
+--thread_count=8 \
+--output=/mnt/thalamocortical_structuralconnectivity/template/RH-thalamic-tractography.tt.gz
