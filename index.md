@@ -68,7 +68,7 @@ The thalamocortical structural connectivity tractography atlas was generated in 
 --max_length=300  #maximum allowed length of streamlines
 --method=0  #streamline tracking 
 --otsu_threshold=0.45  #Otsu's threshold
---smoothing=1  #select a random smoothing amount between 0% to 95% for each streamline; smoothing uses previous propagation vector directinoal information 
+--smoothing=1  #select a random smoothing amount between 0% to 95% for each streamline; smoothing uses previous propagation vector directional information 
 --tip_iteration=0  #turn off topology-informed pruning 
 --random_seed=1  #set the random seed for fiber tracking
 ```
