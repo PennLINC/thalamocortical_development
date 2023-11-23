@@ -58,18 +58,34 @@ A novel thalamocortical structural connectivity tractography atlas was generated
 
 The thalamocortical structural connectivity tractography atlas was generated in the following steps:
 
-*Generate thalamic tractography*: Thalamic tractography was generated with [thalamocortical_structuralconnectivity/template/thalamic_tractography.sh](https://github.com/PennLINC/thalamocortical_development/blob/main/thalamocortical_structuralconnectivity/template/thalamic_tractography.sh) by tracking 2 million streamlines with endpoints in the left thalamus and 2 million streamlines with endpoints in the right thalamus, based on the HCPYA diffusion template.  
-*Delineate regionally-specific thalamus-to-cortex connections*: Structural connections between the thalamus and ipsilateral cortical regions were extracted from the thalamic tractography with [thalamocortical_structuralconnectivity/template/thalamocortical_connectoms.sh](https://github.com/PennLINC/thalamocortical_development/blob/main/thalamocortical_structuralconnectivity/template/thalamocortical_connections.sh) using the HCP-MMP (glasser) atlas.  
-*Manually curate thalamocortical connections*: All regionally-specific thalamocortical connections were visualized and manually edited, if needed, to ensure that atlas connections were compact, robust, comparable across hemispheres, and anatomically correct (based on available primate tract tracing or human diffusion MRI data). Manual editing was conducted to remove false positive streamlines, to ensure streamline terminated in the cortical region of interest, and to identify and eliminate any sparse or unreliable connections (i.e., those with very few streamlines).   
-*Create skeletonized connections for autotracking*: In order to facilitate use of the thalamocortical structural connectivity atlas with dsi-studio's autotrack, each regionally-specific connection was skeletonized by deleting repeat streamlines with [thalamocortical_structuralconnectivity/template/sparsify_connections.sh](https://github.com/PennLINC/thalamocortical_development/blob/main/thalamocortical_structuralconnectivity/template/sparsify_connections.sh).  
-*Combine all regionally-specific thalamocortical connections into one tractography atlas*: After generating finalized, regionally-specific structural connections between the thalamus and individual cortical areas, all connections were combined into one .tt.gz file for use in this study and for public distribution. The final version of the atlas only includes connections that could be robustly and reliably delineated in both the high-resolution HCPYA diffusion template and in individual participant's data in the PNC (single-shell, b=1000) and HCPD (multi-shell, bs=1500,3000). This atlas is provided in [/thalamocortical_autotrack_template](https://github.com/PennLINC/thalamocortical_development/tree/main/thalamocortical_autotrack_template).   
+* *Generate thalamic tractography*: Thalamic tractography was generated with [thalamocortical_structuralconnectivity/template/thalamic_tractography.sh](https://github.com/PennLINC/thalamocortical_development/blob/main/thalamocortical_structuralconnectivity/template/thalamic_tractography.sh) by tracking 2 million streamlines with endpoints in the left thalamus and 2 million streamlines with endpoints in the right thalamus, based on the HCPYA diffusion template.  
+* *Delineate regionally-specific thalamus-to-cortex connections*: Structural connections between the thalamus and ipsilateral cortical regions were extracted from the thalamic tractography with [thalamocortical_structuralconnectivity/template/thalamocortical_connectoms.sh](https://github.com/PennLINC/thalamocortical_development/blob/main/thalamocortical_structuralconnectivity/template/thalamocortical_connections.sh) using the HCP-MMP (glasser) atlas.  
+* *Manually curate thalamocortical connections*: All regionally-specific thalamocortical connections were visualized and manually edited, if needed, to ensure that atlas connections were compact, robust, comparable across hemispheres, and anatomically correct (based on available primate tract tracing or human diffusion MRI data). Manual editing was conducted to remove false positive streamlines, to ensure streamline terminated in the cortical region of interest, and to identify and eliminate any sparse or unreliable connections (i.e., those with very few streamlines).   
+* *Create skeletonized connections for autotracking*: In order to facilitate use of the thalamocortical structural connectivity atlas with dsi-studio's autotrack, each regionally-specific connection was skeletonized by deleting repeat streamlines with [thalamocortical_structuralconnectivity/template/sparsify_connections.sh](https://github.com/PennLINC/thalamocortical_development/blob/main/thalamocortical_structuralconnectivity/template/sparsify_connections.sh).  
+* *Combine all regionally-specific thalamocortical connections into one tractography atlas*: After generating finalized, regionally-specific structural connections between the thalamus and individual cortical areas, all connections were combined into one .tt.gz file for use in this study and for public distribution. The final version of the atlas only includes connections that could be robustly and reliably delineated in both the high-resolution HCPYA diffusion template and in individual participant's data in the PNC (single-shell, b=1000) and HCPD (multi-shell, bs=1500,3000). This atlas is provided in [/thalamocortical_autotrack_template](https://github.com/PennLINC/thalamocortical_development/tree/main/thalamocortical_autotrack_template).   
 
 > To use this atlas with dsi-studio's autotrack to generate thalamocortical connections in individual participant data, both the "ICBM152_adult.tt.gz" (autotrack tracts) and "ICBM152_adult.tt.gz.txt" (tract name list) files are required and must be located in the location expected by the dsi-studio software.   
+>
 > On a Mac, this location is `dsi_studio/dsi_studio.app/Contents/MacOs/atlas/ICBM152_adult`
+>
 > In a container, this location is `/opt/dsi-studio/atlas/ICBM152_adult`. To use these files with a dsi-studio container, bind a local directory containing the contents of atlas/ICBM152_adult with these thalamus-specific .tt.gz and .tt.gz.txt files to the container directory (e.g., -B /cbica/projects/thalamocortical_development/software/thalamocortical_autotrack_template/dsi-studio/atlas/ICBM152_adult/:/opt/dsi-studio/atlas/ICBM152_adult). Or, bind the individual thalamus-specific .tt.gz and .tt.gz.txt files to their corresponding original files in /opt/dsi-studio/atlas/ICBM152_adult. 
 
 ### Diffusion MRI Preprocessing and Reconstruction (PNC and HCP Development)
-Diffusion MRI dat 
+Diffusion MRI data were preprocessed with qsiprep (0.14.2 for PNC; 0.16.1 for HCPD) as follows:
+
+```bash
+$ singularity run --cleanenv -B ${PWD} pennlinc-containers/.datalad/environments/qsiprep-${version}/image inputs/data prep participant --stop-on-first-crash --fs-license-file code/license.txt --skip-bids-validation --participant-label "$subid" --unringing-method mrdegibbs --unringing-method mrdegibbs --output-resolution ${res} #res = 1.8 in PNC, 1.5 in HCPD
+```
+
+Diffusion MRI data were reconstructed using the dsi_studio_gqi reconstruction workflow with qsirecon (0.16.0RC3 for PNC and HCPD) as follows:
+
+```bash
+$ singularity run --cleanenv -B ${PWD} pennlinc-containers/.datalad/environments/qsiprep-0-16-0RC3/image inputs/data/qsiprep/qsiprep qsirecon participant --participant_label $subid -recon-input inputs/data/qsiprep/qsiprep --fs-license-file code/license.txt --stop-on-first-crash --recon-only --skip-odf-reports --freesurfer-input inputs/data/fmriprep/freesurfer --recon-spec ${PWD}/code/gqi_hsvs.json 
+```
+
+Preprocessing and reconstruction workflows were executed with datalad using the template scripts in X, including a,b,c,d. Datalad outputs were cloned for use in this project. 
+
+
 
 ### Delineation of Individual-Specific Thalamocortical Connections
 
