@@ -58,7 +58,21 @@ A novel thalamocortical structural connectivity tractography atlas was generated
 
 The thalamocortical structural connectivity tractography atlas was generated in the following steps:
 
-* **Generate thalamic tractography**: Thalamic tractography was generated with [thalamocortical_structuralconnectivity/template/thalamic_tractography.sh](https://github.com/PennLINC/thalamocortical_development/blob/main/thalamocortical_structuralconnectivity/template/thalamic_tractography.sh) by tracking 2 million streamlines with endpoints in the left thalamus and 2 million streamlines with endpoints in the right thalamus, based on the HCPYA diffusion template.  
+* **Generate thalamic tractography**: Thalamic tractography was generated with [thalamocortical_structuralconnectivity/template/thalamic_tractography.sh](https://github.com/PennLINC/thalamocortical_development/blob/main/thalamocortical_structuralconnectivity/template/thalamic_tractography.sh) by tracking 2 million streamlines with endpoints in the left thalamus and 2 million streamlines with endpoints in the right thalamus, based on the HCPYA diffusion template.  Thalamic tractography was run with the following parameters:
+```
+--threshold_index=qa #use qa for thresholding fiber tracking 
+--fa_threshold=0  #select a random qa value threshold as termination criterion for each streamline
+--turning_angle=0  #select a random turning angle threshold between 15-90 degrees as termination criterion for each streamline 
+--step_size=0  #select a random step size from 0.5 to 1.5 voxels for each streamline
+--min_length=10  #minimum required length of streamlines
+--max_length=300  #maximum allowed length of streamlines
+--method=0  #streamline tracking 
+--otsu_threshold=0.45  #Otsu's threshold
+--smoothing=1  #select a random smoothing amount between 0% to 95% for each streamline; smoothing uses previous propagation vector directinoal information 
+--tip_iteration=0  #turn off topology-informed pruning 
+--random_seed=1  #set the random seed for fiber tracking
+```
+
 * **Delineate regionally-specific thalamus-to-cortex connections**: Structural connections between the thalamus and ipsilateral cortical regions were extracted from the thalamic tractography with [thalamocortical_structuralconnectivity/template/thalamocortical_connectoms.sh](https://github.com/PennLINC/thalamocortical_development/blob/main/thalamocortical_structuralconnectivity/template/thalamocortical_connections.sh) using the HCP-MMP (glasser) atlas.  
 * **Manually curate thalamocortical connections**: All regionally-specific thalamocortical connections were visualized and manually edited, if needed, to ensure that atlas connections were compact, robust, comparable across hemispheres, and anatomically correct (based on available primate tract tracing or human diffusion MRI data). Manual editing was conducted to remove false positive streamlines, to ensure streamline terminated in the cortical region of interest, and to identify and eliminate any sparse or unreliable connections (i.e., those with very few streamlines).   
 * **Create skeletonized connections for autotracking**: In order to facilitate use of the thalamocortical structural connectivity atlas with dsi-studio's autotrack, each regionally-specific connection was skeletonized by deleting repeat streamlines with [thalamocortical_structuralconnectivity/template/sparsify_connections.sh](https://github.com/PennLINC/thalamocortical_development/blob/main/thalamocortical_structuralconnectivity/template/sparsify_connections.sh).  
