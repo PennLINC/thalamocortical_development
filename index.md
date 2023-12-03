@@ -97,7 +97,7 @@ Diffusion MRI data were reconstructed using the dsi_studio_gqi reconstruction wo
 $ singularity run --cleanenv -B ${PWD} pennlinc-containers/.datalad/environments/qsiprep-0-16-0RC3/image inputs/data/qsiprep/qsiprep qsirecon participant --participant_label $subid -recon-input inputs/data/qsiprep/qsiprep --fs-license-file code/license.txt --stop-on-first-crash --recon-only --skip-odf-reports --freesurfer-input inputs/data/fmriprep/freesurfer --recon-spec ${PWD}/code/gqi_hsvs.json 
 ```
 
-Preprocessing and reconstruction workflows were executed with datalad using the template scripts in /qsiprep, including [qsiprep_call_PNC.sh](https://github.com/PennLINC/thalamocortical_development/blob/main/qsiprep/qsiprep_call_PNC.sh), [qsiprep_call_HCPD.sh](https://github.com/PennLINC/thalamocortical_development/blob/main/qsiprep/qsiprep_call_HCPD.sh), [qsirecon_call_PNC.sh](https://github.com/PennLINC/thalamocortical_development/blob/main/qsiprep/qsirecon_call_PNC.sh), and [qsirecon_call_HCPD.sh](https://github.com/PennLINC/thalamocortical_development/blob/main/qsiprep/qsirecon_call_PNC.sh). Datalad outputs were cloned for use in this project using the scripts in [/datalad](https://github.com/PennLINC/thalamocortical_development/tree/main/datalad). 
+Preprocessing and reconstruction workflows were executed with datalad using the template scripts in /qsiprep, including [/PNC/qsiprep_call_PNC.sh](https://github.com/PennLINC/thalamocortical_development/blob/main/qsiprep/PNC/qsiprep_call_PNC.sh), [/HCPD/qsiprep_call_HCPD.sh](https://github.com/PennLINC/thalamocortical_development/blob/main/qsiprep/HCPD/qsiprep_call_HCPD.sh), [/PNC/qsirecon_call_PNC.sh](https://github.com/PennLINC/thalamocortical_development/blob/main/qsiprep/PNC/qsirecon_call_PNC.sh], [/HCPD/qsirecon_call_HCPD](https://github.com/PennLINC/thalamocortical_development/blob/main/qsiprep/HCPD/qsirecon_call_HCPD.sh). Datalad outputs were cloned for use in this project using the scripts in [/datalad](https://github.com/PennLINC/thalamocortical_development/tree/main/datalad).
 
 
 ### Delineation of Individual-Specific Thalamocortical Connections (PNC and HCP-Development)
@@ -122,7 +122,10 @@ For HCPD, registration was accomplished with [/thalamocortical_structuralconnect
 --export_template_trk=1  #write out reconstructed connection in dsi-studio template space
 ``` 
 
-### Thalamocortical Connectivity Measure Extraction
+### Quantification of Thalamocortical Connectivity Metrics
+Diffusion MRI-derived connectivity metrics (FA, MD, streamline count) and gene expression-derived thalamic gradient values (thalamus calbindin-parvalbumin CPt gradient) were extracted for every participant's autotrack-generated thalamocortical connections, using the following code:
+
+* **Diffusion-derived connectivity metrics**: Dataset-specific spreadsheets containing autotrack output statistics for every reconstructed thalamocortical connection were produced by running [/tract_measures/diffusion_metrics/thalamocortical_dwimeasures.py](https://github.com/PennLINC/thalamocortical_development/blob/main/tract_measures/diffusion_metrics/thalamocortical_dwimeasures.py) with a "dataset" command line argument of either "PNC" or "HCPD". This python script takes in the dataset argument and generates a dataset-specific .csv file in long format with all diffusion metrics extracted for all tracts across all participants. 
 
 ### Sample Construction 
 
