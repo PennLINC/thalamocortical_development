@@ -50,10 +50,10 @@ qsirecon_0.16.0RC3: PNC and HCPD qsirecon clones with dsi-studio gqi and fib out
 <br>
 # CODE DOCUMENTATION
 
-The analytic and statistical workflow implemented in this research is described below with links to corresponding code on github provided. This workflow begins with creation of an atlas of human thalamocortical connections; preprocessing and reconstruction of PNC and HCPD diffusion MRI data; generation of individual-specific thalamocortical connections; quantification and harmonization of thalamocortical connectivity metrics; and examination of group-level and individual-level thalamocortical anatomy characteristics. The workflow continues with the fitting of generalized additive models to study relationships between thalamocortical connectivity, age, and the environment. Finally, the workflow includes analyses to characterize thalamocortical structural connectivity development and its influence on hierarchical cortical development and organization along the sensorimotor-association axis. 
+The analytic and statistical workflow implemented in this research is described below; links to the corresponding code on github are provided. This workflow begins with creation of an atlas of human thalamocortical connections, preprocessing and reconstruction of PNC and HCPD diffusion MRI data, generation of individual-specific thalamocortical connections, quantification and harmonization of thalamocortical connectivity metrics, and examination of group-level and individual-level thalamocortical anatomy characteristics. The workflow continues with the fitting of generalized additive models to study relationships between thalamocortical connectivity, age, and the environment and ends with analyses aimed at characterizing thalamocortical structural connectivity development and its influence on hierarchical cortical development and organization along the sensorimotor-association axis. 
 <br>
 
-### Creation of an Atlas of Human Thalamocortical Connections (HCP Young Adult)
+### Creation of an Atlas of Human Thalamocortical Connections (HCP-Young Adult)
 A novel thalamocortical structural connectivity tractography atlas was generated using a high quality diffusion template derived from HCPYA data (N = 1,065, multi-shell acquisition parameters: b-values = 1000, 2000, 3000, 90 directions per shell, 1.25mm isotropic voxels). This population-average template, downloaded from [here](https://brain.labsolver.org/hcp_template.html), is a 1.25 mm isotropic diffusion template in ICBM152 space generated with q-space diffeomorphic reconstruction (MNI-space version of generalized q-sampling imaging). 
 
 The thalamocortical structural connectivity tractography atlas was generated in the following steps:
@@ -84,7 +84,7 @@ The thalamocortical structural connectivity tractography atlas was generated in 
 >
 > In a container, this location is `/opt/dsi-studio/atlas/ICBM152_adult`. To use these files with a dsi-studio container, bind a local directory containing the contents of atlas/ICBM152_adult with these thalamus-specific .tt.gz and .tt.gz.txt files to the container directory (e.g., -B /cbica/projects/thalamocortical_development/software/thalamocortical_autotrack_template/dsi-studio/atlas/ICBM152_adult/:/opt/dsi-studio/atlas/ICBM152_adult). Or, bind the individual thalamus-specific .tt.gz and .tt.gz.txt files to their corresponding original files in /opt/dsi-studio/atlas/ICBM152_adult. 
 
-### Diffusion MRI Preprocessing and Reconstruction (PNC and HCP Development)
+### Diffusion MRI Preprocessing and Reconstruction (PNC and HCP-Development)
 Diffusion MRI data were preprocessed with qsiprep (0.14.2 for PNC; 0.16.1 for HCPD) as follows:
 
 ```bash
@@ -100,7 +100,7 @@ $ singularity run --cleanenv -B ${PWD} pennlinc-containers/.datalad/environments
 Preprocessing and reconstruction workflows were executed with datalad using the template scripts in /qsiprep, including [qsiprep_call_PNC.sh](https://github.com/PennLINC/thalamocortical_development/blob/main/qsiprep/qsiprep_call_PNC.sh), [qsiprep_call_HCPD.sh](https://github.com/PennLINC/thalamocortical_development/blob/main/qsiprep/qsiprep_call_HCPD.sh), [qsirecon_call_PNC.sh](https://github.com/PennLINC/thalamocortical_development/blob/main/qsiprep/qsirecon_call_PNC.sh), and [qsirecon_call_HCPD.sh](https://github.com/PennLINC/thalamocortical_development/blob/main/qsiprep/qsirecon_call_PNC.sh). Datalad outputs were cloned for use in this project using the scripts in [/datalad](https://github.com/PennLINC/thalamocortical_development/tree/main/datalad). 
 
 
-### Delineation of Individual-Specific Thalamocortical Connections
+### Delineation of Individual-Specific Thalamocortical Connections (PNC and HCP-Development)
 Person-specific thalamocortical structural connections were delineated for PNC and HCPD participants using the thalamic tractography atlas and dsi-studio's autotrack. A relatively stringent Hausdorff distance threhold was used; the selected threshold balanced the recovery of person-specific anatomy with mitigation of false positive streamlines and regionally non-specific streamlines. The script [/thalamocortical_structuralconnectivity/individual/thalamocortical_autotrack.sh](https://github.com/PennLINC/thalamocortical_development/blob/main/thalamocortical_structuralconnectivity/individual/thalamocortical_autotrack.sh) was run twice for every participant, first to generate participant -> template registration files (gqi.fib.gz.icbm152_adult.map.gz) for use with autotrack and then to reconstruct all thalamocortical connections. 
 
 For PNC, registration was accomplished with [/thalamocortical_structuralconnectivity/individual/PNC/autotrack_registration_PNC.sh](https://github.com/PennLINC/thalamocortical_development/blob/main/thalamocortical_structuralconnectivity/individual/PNC/autotrack_registration_PNC.sh) and autotrack tract generation was executed with [/thalamocortical_structuralconnectivity/individual/PNC
