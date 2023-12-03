@@ -100,8 +100,29 @@ $ singularity run --cleanenv -B ${PWD} pennlinc-containers/.datalad/environments
 Preprocessing and reconstruction workflows were executed with datalad using the template scripts in /qsiprep, including [qsiprep_call_PNC.sh](https://github.com/PennLINC/thalamocortical_development/blob/main/qsiprep/qsiprep_call_PNC.sh), [qsiprep_call_HCPD.sh](https://github.com/PennLINC/thalamocortical_development/blob/main/qsiprep/qsiprep_call_HCPD.sh), [qsirecon_call_PNC.sh](https://github.com/PennLINC/thalamocortical_development/blob/main/qsiprep/qsirecon_call_PNC.sh), and [qsirecon_call_HCPD.sh](https://github.com/PennLINC/thalamocortical_development/blob/main/qsiprep/qsirecon_call_PNC.sh). Datalad outputs were cloned for use in this project using the scripts in [/datalad](https://github.com/PennLINC/thalamocortical_development/tree/main/datalad). 
 
 
-
 ### Delineation of Individual-Specific Thalamocortical Connections
+Person-specific thalamocortical structural connections were delineated for PNC and HCPD participants using the thalamic tractography atlas and dsi-studio's autotrack. A relatively stringent Hausdorff distance threhold was used; the selected threshold balanced the recovery of person-specific anatomy with mitigation of false positive streamlines and regionally non-specific streamlines. The script [/thalamocortical_structuralconnectivity/individual/thalamocortical_autotrack.sh](https://github.com/PennLINC/thalamocortical_development/blob/main/thalamocortical_structuralconnectivity/individual/thalamocortical_autotrack.sh) was run twice for every participant, first to generate participant -> template registration files (gqi.fib.gz.icbm152_adult.map.gz) for use with autotrack and then to reconstruct all thalamocortical connections. 
+
+For PNC, registration was accomplished with [/thalamocortical_structuralconnectivity/individual/PNC/autotrack_registration_PNC.sh] (https://github.com/PennLINC/thalamocortical_development/blob/main/thalamocortical_structuralconnectivity/individual/PNC/autotrack_registration_PNC.sh) and autotrack tract generation was executed with [/thalamocortical_structuralconnectivity/individual/PNC
+/run_autotrack_PNC.sh](https://github.com/PennLINC/thalamocortical_development/blob/main/thalamocortical_structuralconnectivity/individual/PNC/run_autotrack_PNC.sh).
+
+For HCPD, registration was accomplished with [/thalamocortical_structuralconnectivity/individual/HCPD/autotrack_registration_HCPD.sh](https://github.com/PennLINC/thalamocortical_development/blob/main/thalamocortical_structuralconnectivity/individual/HCPD/autotrack_registration_HCPD.sh) and autotrack tract generation was executed with [/thalamocortical_structuralconnectivity/individual/HCPD/run_autotrack_HCPD.sh](https://github.com/PennLINC/thalamocortical_development/blob/main/thalamocortical_structuralconnectivity/individual/HCPD/run_autotrack_HCPD.sh).
+
+Autotrack was run with the following parameters:
+```
+
+--otsu_threshold=0.5  #Otsu's threshold for tracking 
+--smoothing=1  #select a random smoothing amount between 0% to 95% for each streamline; smoothing uses previous propagation vector directional information 
+--tolerance=10   #Hausdorff distance threhold
+--tip_iteration=0  #no topology-informed pruning
+--track_voxel_ratio=4  #the track-voxel ratio for the total number of streamline count. Increased from the default of 2 to facilitate better mapping (at the expense of greater computation time)
+--check_ending=0  #don't remove tracts that terminate in high anisotropy areas
+--export_stat=1  #write out connection statistics file
+--export_trk=1  #write out the reconstructed connection as a tractography file 
+--yield_rate=0.0000001  #yield rate that must be met before fiber tracking is terminated and no output is generated
+--export_template_trk=1  #write out reconstructed connection in dsi-studio template space
+
+``` 
 
 ### Thalamocortical Connectivity Measure Extraction
 
