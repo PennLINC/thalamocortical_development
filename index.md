@@ -84,7 +84,7 @@ The thalamocortical structural connectivity tractography atlas was generated in 
 >
 > In a container, this location is `/opt/dsi-studio/atlas/ICBM152_adult`. To use these files with a dsi-studio container, bind a local directory containing the contents of atlas/ICBM152_adult with these thalamus-specific .tt.gz and .tt.gz.txt files to the container directory (e.g., -B /cbica/projects/thalamocortical_development/software/thalamocortical_autotrack_template/dsi-studio/atlas/ICBM152_adult/:/opt/dsi-studio/atlas/ICBM152_adult). Or, bind the individual thalamus-specific .tt.gz and .tt.gz.txt files to their corresponding original files in /opt/dsi-studio/atlas/ICBM152_adult. 
 
-### Diffusion MRI Preprocessing and Reconstruction (PNC and HCP-Development)
+### Preprocessing and Reconstruction of Diffusion MRI Data (PNC and HCP-Development)
 Diffusion MRI data were preprocessed with qsiprep (0.14.2 for PNC; 0.16.1 for HCPD) as follows:
 
 ```bash
@@ -126,6 +126,8 @@ For HCPD, registration was accomplished with [/thalamocortical_structuralconnect
 Diffusion MRI-derived connectivity metrics (FA, MD, streamline count) and gene expression-derived thalamic gradient values (thalamus calbindin-parvalbumin CPt gradient) were extracted for every participant's autotrack-generated thalamocortical connections, using the following code:
 
 * **Diffusion-derived connectivity metrics**: Dataset-specific spreadsheets containing autotrack output statistics for every reconstructed thalamocortical connection were produced by running [/tract_measures/diffusion_metrics/thalamocortical_dwimeasures.py](https://github.com/PennLINC/thalamocortical_development/blob/main/tract_measures/diffusion_metrics/thalamocortical_dwimeasures.py) with a "dataset" command line argument of either "PNC" or "HCPD". This python script takes in the dataset argument and generates a dataset-specific .csv file in long format with all diffusion metrics extracted for all tracts across all participants. 
+* **Thalamus calbindin-parvalbumin CPt gradient values**: A series of steps were performed in order to calculate the average CPt value in each thalamocotrical connection's thalamic termination area. The CPt value, i.e. the thalamic calbindin-parvalbumin value, represents a thalamocortical connection's core-matrix gradient positioning. First, thalamocortical connection labelmasks were registered to MNI space and CPt values were calculated in the connection's thalamic termination area with [/tract_measures/CPtgradient_values/thalamocortical_calculate_CPtvalues.sh](https://github.com/PennLINC/thalamocortical_development/blob/main/tract_measures/CPtgradient_values/thalamocortical_calculate_CPtvalues.sh); this script was called for every participant by executing [/tract_measures/CPtgradient_values/thalamocortical_CPtvalues_jobs.sh](https://github.com/PennLINC/thalamocortical_development/blob/main/tract_measures/CPtgradient_values/thalamocortical_CPtvalues_jobs.sh) with command line arguments "PNC" and "HCPD". Then [/tract_measures/CPtgradient_values/thalamocortical_CPtvalues.py](https://github.com/PennLINC/thalamocortical_development/blob/main/tract_measures/CPtgradient_values/thalamocortical_CPtvalues.py) was run with a "dataset" command line argument of either "PNC" or "HCPD". This python script takes in a dataset command line argument and generates a dataset-specific .csv file in long format with CPt extracted for all tracts across all participants.  
+
 
 ### Sample Construction 
 
