@@ -132,14 +132,20 @@ Diffusion MRI-derived connectivity metrics (FA, MD, streamline count) and gene e
 ### Sample Construction 
 1358 PNC participants and 640 (Lifespan 2.0 release) HCPD participants had dominant group diffusion MRI acquisitions (i.e., non-variant CuBIDS acquisitions) and were considered for inclusion in this research. The following exclusion criterion were then applied to generate the final samples of 1145 PNC participants and 572 HCPD participants:
 
-> health history exclusions, for example history of cancer, MS, seizures, or incidentally-encountered brain structure abnormalities  
-> T1 quality exclusion, based on visual QC  
-> diffusion acquisition exclusion for missing runs (HCPD only)  
-> diffusion quality exclusion, based on the T1 neighborhood correlation. Note, nc values differ by sampling scheme, thus different thresholds were used in PNC and HCPD. Thresholds were chosen based on nc histograms  
-> diffusion scan head motion exclusion, based on mean framewise displacement (threshold = 1). Note, ~6% of the presently retained sample was excluded for both PNC and HCPD following diffusion quality and head motion exclusions  
+> *health history exclusions*, for example history of cancer, MS, seizures, or incidentally-encountered brain structure abnormalities  
+> *T1 quality exclusion*, based on visual QC  
+> *diffusion acquisition exclusion* for missing runs (HCPD only)  
+> *diffusion quality exclusion*, based on the T1 neighborhood correlation. Note, nc values differ by sampling scheme, thus different thresholds were used in PNC and HCPD. Thresholds were chosen based on nc histograms  
+> *diffusion scan head motion exclusion*, based on mean framewise displacement (threshold = 1). Note, ~6% of the presently retained sample was excluded for both PNC and HCPD following diffusion quality and head motion exclusions  
 > *An age exclusion (< 8 years old) was also applied to HCPD in order to match ages across samples and directly assess reproducibility. This excluded only 2.4% of the final HCPD sample participants, and thus has the additional benefit of not biasing gam smooth fits to very few data points at the lower end of the age range
 
 Final study samples were constructed following the criterion outlined above in [/sample_construction/PNC/finalsample_PNC.Rmd](https://github.com/PennLINC/thalamocortical_development/blob/main/sample_construction/PNC/finalsample_PNC.Rmd) and [/sample_construction/HCPD/finalsample_HCPD.Rmd](https://github.com/PennLINC/thalamocortical_development/blob/main/sample_construction/HCPD/finalsample_HCPD.Rmd). This sample construction procedure utilized diffusion scan acqusition, quality, and head motion information provided in qsiprep ImageQC_dwi.csvs, which were collated into dataset-specific diffusion QC metric .csvs with [/sample_construction/PNC/diffusion_qcmetrics_PNC.py](https://github.com/PennLINC/thalamocortical_development/blob/main/sample_construction/PNC/diffusion_qcmetrics_PNC.py) and [/sample_construction/HCPD/diffusion_qcmetrics_HCPD.py](https://github.com/PennLINC/thalamocortical_development/blob/main/sample_construction/HCPD/diffusion_qcmetrics_HCPD.py) 
+
+
+### Generation of Dataset-Specific Analysis Dfs and Tract Lists
+To facilitate analysis of participant-level thalamocortical connectivity data, dataset-specific demographics + diffusion dataframes and dataset-specific tract lists were generated.  
+
+* **Dataset-specific demographics and diffusion dfs**: Analytic dataframes were created for PNC and HCPD that include demographics and thalamocortical structural connectivity metrics for the final study sample. In HCPD, final sample thalamocortical metrics were harmonized with comBat to mitigate site effects. In both datasets, thalamocortical connections with < 5 streamlines (primary analysis) were removed from final analytic dataframes at the participant-level; these connections were not included in further analyses. These steps (dataframe creation, harmonization, and streamline thresholding) were implemented with [/sample_construction/PNC/tractmeasures_dfs_PNC.R](https://github.com/PennLINC/thalamocortical_development/blob/main/sample_construction/PNC/tractmeasures_dfs_PNC.R) and [sample_construction/HCPD/tractmeasures_dfs_HCPD.R](https://github.com/PennLINC/thalamocortical_development/blob/main/sample_construction/HCPD/tractmeasures_dfs_HCPD.R). 
 
 
 ### Software Installation
