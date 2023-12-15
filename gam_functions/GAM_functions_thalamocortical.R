@@ -78,13 +78,14 @@ gam.fit.smooth <- function(measure, atlas, dataset, region, smooth_var, covariat
   #Age of decrease offset
   if(sum(derv$sig) > 0){ 
     decreasing.range <- derv$data[derv$sig_deriv < 0] #identify all ages with a significant negative derivative (i.e., smooth_var indices where y is decreasing)
-    if(length(decreasing.range) > 0)
+    if(length(decreasing.range) > 0){
       last.decrease <- max(decreasing.range) #find oldest age with a significant negative derivative
-    if(last.decrease == derv$data[length(derv$data)]) #if the last age of significant decrease is the oldest in the dataset
-      decrease.offset <- last.decrease
-    if(last.decrease != derv$data[length(derv$data)]){ 
-      decrease.offset.row <- which(derv$data == last.decrease) + 1 #use above to find the first age when the derivative is not significant
-      decrease.offset <- derv$data[decrease.offset.row]}
+      if(last.decrease == derv$data[length(derv$data)]) #if the last age of significant decrease is the oldest in the dataset
+        decrease.offset <- last.decrease
+      if(last.decrease != derv$data[length(derv$data)]){ 
+        decrease.offset.row <- which(derv$data == last.decrease) + 1 #use above to find the first age when the derivative is not significant
+        decrease.offset <- derv$data[decrease.offset.row]}
+      }
     if(length(decreasing.range) == 0)
       decrease.offset <- NA}
   if(sum(derv$sig) == 0){ 
@@ -103,13 +104,14 @@ gam.fit.smooth <- function(measure, atlas, dataset, region, smooth_var, covariat
   #Age of increase offset
   if(sum(derv$sig) > 0){ 
     increasing.range <- derv$data[derv$sig_deriv > 0] #identify all ages with a significant positive derivative (i.e., smooth_var indices where y is increasing)
-    if(length(increasing.range) > 0)
+    if(length(increasing.range) > 0){
       last.increase <- max(increasing.range) #find oldest age with a significant positive derivative
       if(last.increase == derv$data[length(derv$data)]) #if the last age of significant increase is the oldest in the dataset
          increase.offset <- last.increase
       if(last.increase != derv$data[length(derv$data)]){ 
         increase.offset.row <- which(derv$data == last.increase) + 1 #use above to find the first age when the derivative is not significant
         increase.offset <- derv$data[increase.offset.row]}
+    }
     if(length(increasing.range) == 0)
       increase.offset <- NA}
   if(sum(derv$sig) == 0){ 
