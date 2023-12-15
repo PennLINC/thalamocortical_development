@@ -1,0 +1,521 @@
+---
+title: "Thalamocortical Connectivity Atlas Characteristics and Tract Anatomy"
+author: "Valerie Jill Sydnor"
+output: 
+  rmdformats::robobook:
+    highlight: monochrome
+    lightbox: true
+    gallery: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(ggseg)
+library(ggsegGlasser)
+library(scales)
+library(cifti)
+library(PupillometryR)
+library(car)
+library(rstatix)
+extrafont::loadfonts()
+source("/cbica/projects/thalamocortical_development/software/rotate_parcellation/R/perm.sphere.p.R")
+```
+
+```{r}
+glasser.regions <- read.csv("/cbica/projects/thalamocortical_development/Maps/parcellations/surface/glasser360_regionlist.csv") #parcel name, label name 
+glasser.regions$tract <- paste0("thalamus_", glasser.regions$orig_parcelname) %>% gsub("_ROI", "_autotrack", .) %>% gsub("-", "_", .) #create tract variable with format thalamus_$hemi_$region_autotrack, no dashes -
+glasser.assignments <- read.csv("/cbica/projects/thalamocortical_development/Maps/parcellations/surface/glasser360-mesulam_economo_yeo-assignments.csv") #mesulam assignments for glasser parcels
+glasser.assignments <- merge(glasser.assignments, glasser.regions, by = "label", sort = F)
+```
+
+# Thalamocortical Autotrack Atlas Anatomical Characteristics
+
+Glasser parcel anatomy: surface area and sulcal depth measures
+```{r}
+glasserparcel.anatomy <- read.csv("/cbica/projects/thalamocortical_development/Templates/fsaverage/stats/glasserparcel_anatomy.csv") %>% select(StructName, Area_mm2, Mean) %>% filter(StructName != "???") %>% set_names("orig_parcelname", "surface_area", "sulcal_depth") #parcel name, total surface area, and mean sulcal depth for 360 glasser regions, calculated in /parcel_anatomy/glasser_parcel_anatomy bash and python scripts
+glasserparcel.anatomy <- merge(glasserparcel.anatomy, glasser.assignments, by = "orig_parcelname", sort = F)
+```
+
+Thalamocortical connection atlas tract list
+```{r}
+tc.autotrack.tracts <- read.csv("/cbica/projects/thalamocortical_development/software/thalamocortical_autotrack_template/dsi-studio/atlas/ICBM152_adult/ICBM152_adult.tt.gz.txt", header = F) #238 connections
+colnames(tc.autotrack.tracts) <- c("tract")
+tc.autotrack.tracts$tract <- gsub("-", "_", tc.autotrack.tracts$tract) #no dasher -, no prancer, no vixen
+```
+
+## Percent of the cortical surface reached by thalamocortical atlas connections 
+
+```{r}
+#total area of the cortical surface (sum of the area of all glasser parcels)
+total.surfacearea <- sum(glasserparcel.anatomy$surface_area)
+
+#area of the cortical surface with reconstructed thalamus connections
+tract.surfacearea <- sum(glasserparcel.anatomy[glasserparcel.anatomy$tract %in% tc.autotrack.tracts$tract,]$surface_area)
+
+#percent of surface area with thalamus-cortex structural connections
+round((tract.surfacearea/total.surfacearea)*100,2)
+```
+
+## Surface area of parcels with versus without reconstructed thalamocortical connections
+
+```{r}
+glasserparcel.anatomy$reconstructed <- ifelse(glasserparcel.anatomy$tract %in% tc.autotrack.tracts$tract, "Present", "Absent")
+glasserparcel.anatomy$reconstructed <- factor(glasserparcel.anatomy$reconstructed, ordered = T, levels = c("Present", "Absent"))
+```
+
+```{r}
+glasserparcel.anatomy <- glasserparcel.anatomy %>% mutate(surface_area_z = scale(surface_area, center = T, scale = T)) #z-score surface area 
+```
+
+```{r}
+ggplot(glasserparcel.anatomy, aes(x = reconstructed, y = surface_area_z)) + 
+  geom_point(aes(color = reconstructed, fill = reconstructed), position = position_jitter(width = .4), size = 0.07) + 
+  geom_boxplot(aes(color = reconstructed), fill = alpha("white", 0.75), size = 0.15, outlier.shape = NA) + 
+  theme_minimal() +
+  scale_color_manual(values = c("#48457F", "#FCAB6A")) +
+  labs(x="\n", y="surface area\n") +
+  theme(legend.position = "none") +
+  theme(
+  panel.grid.major = element_line(linewidth = 0.2),
+  panel.grid.minor = element_blank(),
+  panel.grid.major.x = element_blank(),
+  axis.text = element_text(size = 5, family = "Arial", color = c("black")),
+  axis.title.x = element_text(size = 5, family ="Arial", color = c("black")),
+  axis.title.y = element_text(size = 5, family ="Arial", color = c("black")),
+  axis.line = element_line(linewidth = .2), 
+  axis.ticks = element_line(linewidth = .2)) 
+
+ggsave(filename = "/cbica/projects/thalamocortical_development/figures/images/Figure1/Atlasconnections_surfacearea.pdf", device = "pdf", dpi = 500, width = 1.3 , height = 1.2)
+```
+
+```{r}
+var.test(glasserparcel.anatomy$surface_area ~ glasserparcel.anatomy$reconstructed) #variances are not equal
+t.test(glasserparcel.anatomy$surface_area ~ glasserparcel.anatomy$reconstructed, alternative = "two.sided", var.equal = FALSE)
+```
+
+## Sulcal depth of parcels with versus without reconstructed thalamocortical connections
+
+```{r}
+ggplot(glasserparcel.anatomy, aes(x = reconstructed, y = sulcal_depth)) + 
+  geom_point(aes(color = reconstructed, fill = reconstructed), position = position_jitter(width = .4), size = 0.07) + 
+  geom_boxplot(aes(color = reconstructed), fill = alpha("white", 0.75), size = 0.25, outlier.shape = NA) + 
+  theme_minimal() +
+  scale_color_manual(values = c("#48457F", "#FCAB6A")) +
+  labs(x="\n", y="sulcal depth\n") +
+  theme(legend.position = "none") +
+  theme(
+  panel.grid.major = element_line(linewidth = 0.2),
+  panel.grid.minor = element_blank(),
+  panel.grid.major.x = element_blank(),
+  axis.text = element_text(size = 5, family = "Arial", color = c("black")),
+  axis.title.x = element_text(size = 5, family ="Arial", color = c("black")),
+  axis.title.y = element_text(size = 5, family ="Arial", color = c("black")),
+  axis.line = element_line(linewidth = .2), 
+  axis.ticks = element_line(linewidth = .2)) +
+  scale_y_continuous(breaks = c(-1, 0, 1))
+
+ggsave(filename = "/cbica/projects/thalamocortical_development/figures/images/Figure1/Atlasconnections_sulcaldepth.pdf", device = "pdf", dpi = 500, width = 1.3 , height = 1.2)
+```
+
+```{r}
+var.test(glasserparcel.anatomy$sulcal_depth ~ glasserparcel.anatomy$reconstructed) #variances are approx equal
+t.test(glasserparcel.anatomy$sulcal_depth ~ glasserparcel.anatomy$reconstructed, alternative = "two.sided", var.equal = TRUE)
+```
+
+# Thalamocortical Connectivity Cortical and Thalamic Gradients 
+
+S-A axis ranks
+```{r, warning = F, message = F}
+S.A.axis.cifti <- read_cifti("/cbica/projects/thalamocortical_development/Maps/S-A_ArchetypalAxis/FSLRVertex/SensorimotorAssociation_Axis_parcellated/SensorimotorAssociation.Axis.Glasser360.pscalar.nii") #S-A_ArchetypalAxis repo
+S.A.axis <- data.frame(SA.axis = rank(S.A.axis.cifti$data), orig_parcelname = names(S.A.axis.cifti$Parcel))
+S.A.axis <- merge(S.A.axis, glasser.assignments, by="orig_parcelname", sort = F)
+```
+
+Sample-specific final tract lists
+```{r}
+#Tract lists generated by /tract_measures/tractlists/thalamocortical_tractlists.R
+tractlist.hcpd <- read.csv("/cbica/projects/thalamocortical_development/thalamocortical_structuralconnectivity/individual/HCPD/HCPD_tractlist_primary.csv")
+tractlist.pnc <- read.csv("/cbica/projects/thalamocortical_development/thalamocortical_structuralconnectivity/individual/PNC/PNC_tractlist_primary.csv")
+```
+
+Spatial permutations of the glasser parcellation for spin testing 
+```{r}
+perm.id.full <- readRDS("/cbica/projects/thalamocortical_development/software/rotate_parcellation/glasser_sphericalrotations_N10000.rds") #10,000 spatial null spins for spin testing (spherical permutation based p-values). Parcel order is right hemisphere -> left hemisphere 
+spin.parcels <- glasser.regions #order of complete set of glasser parcels for spinning
+```
+
+Function to calculate tract-level means per dataset
+```{r}
+tract_average_measures <- function(measure, atlas, dataset){
+  input.df <- get(sprintf("%s.%s.%s", measure, atlas, dataset)) %>% select(contains("autotrack")) #nrow subjects by ncol tracts for mean calculation
+  tract.means <- colMeans(input.df, na.rm = TRUE) %>% as.data.frame %>% set_names(sprintf("mean_%s", measure)) %>% mutate(tract = row.names(.))
+  tract.means <- merge(tract.means, S.A.axis, by = "tract")
+  return(tract.means)
+}
+```
+
+## Thalamocortical Connection Fractional Anisotropy
+
+```{r}
+FA.glasser.pnc <- read.csv("/cbica/projects/thalamocortical_development/thalamocortical_structuralconnectivity/individual/PNC/PNC_FA_finalsample_primary.csv") #FA for included tracts and participants
+
+FA.glasser.hcpd <- read.csv("/cbica/projects/thalamocortical_development/thalamocortical_structuralconnectivity/individual/HCPD/HCPD_FA_finalsample_primary.csv") 
+```
+
+**Calculate mean FA for each tract in PNC and HCPD datasets**
+
+```{r}
+tract.meanFA.pnc <- tract_average_measures(measure = "FA", atlas = "glasser", dataset = "pnc")
+tract.meanFA.pnc <- tract.meanFA.pnc[tract.meanFA.pnc$tract %in% tractlist.pnc$tract,] #connection-level mean FA for final PNC tract list
+write.csv(tract.meanFA.pnc, "/cbica/projects/thalamocortical_development/thalamocortical_structuralconnectivity/individual/PNC/PNC_tractaverage_FA_primary.csv", row.names = F, quote = F)
+
+tract.meanFA.hcpd <- tract_average_measures(measure = "FA", atlas = "glasser", dataset = "hcpd")
+tract.meanFA.hcpd <- tract.meanFA.hcpd[tract.meanFA.hcpd$tract %in% tractlist.hcpd$tract,] #connection-level mean FA for final HCPD tract list
+write.csv(tract.meanFA.hcpd, "/cbica/projects/thalamocortical_development/thalamocortical_structuralconnectivity/individual/HCPD/HCPD_tractaverage_FA_primary.csv", row.names = F, quote = F)
+```
+
+**Correlation of connection-level average FA between datasets**
+
+*Spearman's rho* 
+
+```{r}
+tract.meanFA.merged <- merge((tract.meanFA.pnc %>% select(tract, mean_FA)), (tract.meanFA.hcpd %>% select(tract, mean_FA)), by = "tract") %>% set_names("tract", "mean_FA.pnc", "mean_FA.hcpd")
+
+cor.test(tract.meanFA.merged$mean_FA.pnc, tract.meanFA.merged$mean_FA.hcpd)
+```
+
+*Spatial permutation (spin) based p-value*
+
+```{r}
+spin.data <- left_join(spin.parcels, tract.meanFA.merged, by = "tract") #full set of parcel data in rh --> lh order for spinning. spin test null correlations use complete obs only. Each null correlation correspondence statistic is thus computed on a slightly  reduced set of data, akin to a jackknife procedure
+perm.sphere.p(x = spin.data$mean_FA.pnc, y = spin.data$mean_FA.hcpd, perm.id = perm.id.full, corr.type = "pearson") 
+```
+
+*Correlation plot*
+
+```{r}
+ggplot(tract.meanFA.merged, aes(x = mean_FA.pnc, y = mean_FA.hcpd)) +
+  geom_point(color = c("#571766"), size = 0.5) +
+  geom_smooth(method = "lm", color = c("goldenrod1"), formula = y ~ x, linewidth = 0.2) + 
+  theme_classic() +
+  scale_x_continuous(limits = c(0.2, 0.525)) +
+  scale_y_continuous(limits = c(0.2, 0.525)) +
+  labs(x="\nPNC", y="HCPD\n") +
+  theme(
+  axis.text = element_text(size = 5, family = "Arial", color = c("black")),
+  axis.title.x = element_text(size = 5, family ="Arial", color = c("black")),
+  axis.title.y = element_text(size = 5, family ="Arial", color = c("black")),
+  axis.line = element_line(linewidth = .2), 
+  axis.ticks = element_line(linewidth = .2)) 
+
+ggsave(filename = "/cbica/projects/thalamocortical_development/figures/images/Figure3/FA_correlation_PNCHCPD.pdf", device = "pdf", dpi = 500, width = 1.45, height = 1.3)
+```
+
+**Thalamocortical connectivity FA differs by Mesulam cortical type**
+
+*Welch's ANOVA with unequal variances to test for significant differences between cortical types, with Games Howell post-hoc tests*
+
+PNC
+```{r}
+tract.meanFA.pnc$mesulam_assignment <- factor(tract.meanFA.pnc$mesulam_assignment, levels = c("idiotypic", "unimodal", "heteromodal", "paralimbic")) #order from idiotypic --> paralimbic
+
+leveneTest(tract.meanFA.pnc$mean_FA ~ tract.meanFA.pnc$mesulam_assignment) #variances are not equal
+oneway.test(tract.meanFA.pnc$mean_FA ~ tract.meanFA.pnc$mesulam_assignment, var.equal = FALSE) #one-way analysis of means for unequal variances 
+
+tract.meanFA.pnc %>% games_howell_test(mean_FA ~ mesulam_assignment) #performs Games-Howell test, which is used to compare all possible combinations of group differences when the assumption of homogeneity of variances is violated 
+```
+
+HCPD
+```{r}
+tract.meanFA.hcpd$mesulam_assignment <- factor(tract.meanFA.hcpd$mesulam_assignment, levels = c("idiotypic", "unimodal", "heteromodal", "paralimbic")) 
+
+leveneTest(tract.meanFA.hcpd$mean_FA ~ tract.meanFA.hcpd$mesulam_assignment) #variances are not equal
+oneway.test(tract.meanFA.hcpd$mean_FA ~ tract.meanFA.hcpd$mesulam_assignment, var.equal = FALSE) #one-way analysis of means for unequal variances 
+
+tract.meanFA.hcpd %>% games_howell_test(mean_FA ~ mesulam_assignment) 
+```
+
+*Mesulam cortical type plot*
+
+```{r}
+mesulam.means <-  tract.meanFA.pnc %>% group_by(mesulam_assignment) %>% summarise(mean = mean(mean_FA)) #calculate mean FA in each type for plotting 
+mesulam.means
+```
+
+```{r, warning=F, message=F}
+ggplot(tract.meanFA.pnc, aes(x = mesulam_assignment, y = mean_FA)) + 
+  geom_point(aes(color = mesulam_assignment, fill = mesulam_assignment), size = 0.25, position = position_jitter(width = .05)) + 
+  geom_flat_violin(aes(fill = mesulam_assignment), position = position_nudge(x = .12, y = 0), alpha = .99, size = 0.2) +
+  geom_point(data = mesulam.means, aes(x = mesulam_assignment, y = mean), shape = 21 , color = "white", stroke = .3,  fill = "black", size = 0.8) + 
+  scale_x_discrete(expand = c(0.125, -0.1)) +
+  scale_color_manual(values = c("#FDC446", "#EA8B57", "#822A7E", "#581768")) +
+  scale_fill_manual(values = c("#FDC446", "#EA8B57", "#822A7E", "#581768")) +
+  theme_classic() +
+  theme(legend.position = "none") +
+  labs(x="\nMesulam Cortical Type", y="Connection FA\n") +
+  theme(
+  panel.grid.minor = element_blank(),
+  panel.grid.major.x = element_blank(),
+  axis.text = element_text(size = 5, family = "Arial", color = c("black")),
+  axis.title.x = element_text(size = 5, family ="Arial", color = c("black")),
+  axis.title.y = element_text(size = 5, family ="Arial", color = c("black")),
+  axis.line = element_line(linewidth = .2), 
+  axis.ticks = element_line(linewidth = .2)) 
+
+ggsave(filename = "/cbica/projects/thalamocortical_development/figures/images/Figure3/FA_mesulamtype_PNC.pdf", device = "pdf", dpi = 500, width = 1.75, height = 1.3)
+```
+
+**Thalamocortical connectivity FA organization along the S-A axis**
+
+*Spearman's correlations*
+
+PNC
+```{r}
+cor.test(tract.meanFA.pnc$mean_FA, tract.meanFA.pnc$SA.axis, method = c("spearman"))
+```
+
+HCPD
+```{r}
+cor.test(tract.meanFA.hcpd$mean_FA, tract.meanFA.hcpd$SA.axis, method = c("spearman"))
+```
+
+*Spatial permutation (spin) based p-value*
+
+PNC
+```{r}
+spin.data <- left_join(spin.parcels, tract.meanFA.pnc, by = c("orig_parcelname", "label", "tract"))
+perm.sphere.p(x = spin.data$mean_FA, y = spin.data$SA.axis, perm.id = perm.id.full, corr.type = "pearson") 
+```
+
+HCPD
+```{r}
+spin.data <- left_join(spin.parcels, tract.meanFA.hcpd, by = c("orig_parcelname", "label", "tract"))
+perm.sphere.p(x = spin.data$mean_FA, y = spin.data$SA.axis, perm.id = perm.id.full, corr.type = "pearson") 
+```
+
+
+*Thalamocortical FA by S-A axis plot*
+
+```{r, warning=F, message=F}
+ggplot(tract.meanFA.pnc, aes(x = SA.axis, y = mean_FA)) +
+  geom_point(aes(color = SA.axis), size = 0.5) +
+  geom_smooth(method = "lm", linewidth = 0.3, color = c("gray25")) + 
+  theme_classic() +
+  scale_fill_gradient2(low = "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "color", name = NULL, limits = c(1, 360), midpoint = 180) +
+  labs(x="\nSensorimotor-association axis rank", y="Connection FA\n") +
+  theme(legend.position = "none") +
+  theme(
+  panel.grid.minor = element_blank(),
+  panel.grid.major.x = element_blank(),
+  axis.text = element_text(size = 5, family = "Arial", color = c("black")),
+  axis.title.x = element_text(size = 5, family ="Arial", color = c("black")),
+  axis.title.y = element_text(size = 5, family ="Arial", color = c("black")),
+  axis.line = element_line(linewidth = .2), 
+  axis.ticks = element_line(linewidth = .2)) 
+
+ggsave(filename = "/cbica/projects/thalamocortical_development/figures/images/Figure3/FA_SArank_PNC.pdf", device = "pdf", dpi = 500, width = 1.7, height = 1.3)
+```
+
+## Thalamocortical Connection Core-Matrix Gradient (CPt) Values
+
+Read in connection-specific core-matrix gradient values (based on the connection's thalamic endpoints and the thalamic calbindin-parvalbumin CPt gradient) and get data for just final study sample and included tracts
+
+```{r}
+extract_measure <- function(metric.df, participants.df, measure){ 
+  measure.df <- metric.df %>% select(rbcid, tract, all_of(measure)) #extract measure of interest from long df
+  measure.df <- measure.df %>% arrange(tract) #tracts in alphabetical order 
+  measure.df <- measure.df %>% pivot_wider(names_from = "tract", values_from = all_of(measure)) #long to wide format, all participants and tracts
+  measure.df <- measure.df %>% arrange(rbcid)  #rbcids in numerical order
+  colnames(measure.df) <- gsub("-", "_", colnames(measure.df))
+  measure.df <- measure.df[measure.df$rbcid %in% participants.df$rbcid,] #only final sample of participants now
+  return(measure.df)
+}
+```
+
+PNC
+```{r}
+#Create connection CPt value spreadsheet for final sample of PNC participants
+CPt.glasser.pnc.long <- read.csv("/cbica/projects/thalamocortical_development/thalamocortical_structuralconnectivity/individual/PNC/PNC_thalamicconnection_CPt.csv") #thalamic connection CPt gradient values, generated by /tract_measures/CPtgradient_values/lthalamocortical_calculate_CPtvalues.sh and /tract_measures/CPtgradient_values/thalamocortical_CPtvalues.py
+participants.pnc <- read.csv("/cbica/projects/thalamocortical_development/sample_info/PNC/PNC_thalamocortical_finalsample_N1145.csv") #PNC final participant list
+CPt.glasser.pnc <- extract_measure(metric.df = CPt.glasser.pnc.long, participants.df = participants.pnc, measure = "CPt")
+
+#Don't analyze CPt values for connections with <5 streamlines 
+streamlinecount.glasser.pnc <- read.csv("/cbica/projects/thalamocortical_development/thalamocortical_structuralconnectivity/individual/PNC/PNC_streamlinecount_finalsample.csv")
+#identical(streamlinecount.glasser.pnc$rbcid, CPt.glasser.pnc$rbcid) = TRUE; internal check
+streamlinecount.glasser.pnc <- streamlinecount.glasser.pnc %>% select(contains("autotrack")) #1145 subjects by 238 tracts
+CPt.glasser.pnc <- CPt.glasser.pnc %>% select(contains("autotrack")) #1145 subjects by 238 tracts
+#identical(names(streamlinecount.glasser.pnc), names(CPt.glasser.pnc)) = TRUE; internal check
+CPt.glasser.pnc <- CPt.glasser.pnc * ifelse(streamlinecount.glasser.pnc >= 5, 1, NA)
+```
+
+HCPD
+```{r}
+#Create connection CPt value spreadsheet for final sample of HCPD participants
+CPt.glasser.hcpd.long <- read.csv("/cbica/projects/thalamocortical_development/thalamocortical_structuralconnectivity/individual/HCPD/HCPD_thalamicconnection_CPt.csv") 
+participants.hcpd <- read.csv("/cbica/projects/thalamocortical_development/sample_info/HCPD/HCPD_thalamocortical_finalsample_N572.csv") #HCPD final participant list
+CPt.glasser.hcpd <- extract_measure(metric.df = CPt.glasser.hcpd.long, participants.df = participants.hcpd, measure = "CPt")
+
+#Don't analyze CPt values for connections with <5 streamlines 
+streamlinecount.glasser.hcpd <- read.csv("/cbica/projects/thalamocortical_development/thalamocortical_structuralconnectivity/individual/HCPD/HCPD_streamlinecount_finalsample.csv")
+#identical(streamlinecount.glasser.hcpd$rbcid, CPt.glasser.hcpd$rbcid) = TRUE; internal check
+streamlinecount.glasser.hcpd <- streamlinecount.glasser.hcpd %>% select(contains("autotrack")) #572 subjects by 238 tracts
+CPt.glasser.hcpd <- CPt.glasser.hcpd %>% select(contains("autotrack")) #572 subjects by 238 tracts
+#identical(names(streamlinecount.glasser.hcpd), names(CPt.glasser.hcpd)) = TRUE; internal check
+CPt.glasser.hcpd <- CPt.glasser.hcpd * ifelse(streamlinecount.glasser.hcpd >= 5, 1, NA)
+```
+
+**Calculate thalamic connection area CPt value for each tract in PNC and HCPD datasets**
+
+```{r}
+tract.meanCPt.pnc <- tract_average_measures(measure = "CPt", atlas = "glasser", dataset = "pnc")
+tract.meanCPt.pnc <- tract.meanCPt.pnc[tract.meanCPt.pnc$tract %in% tractlist.pnc$tract,] 
+write.csv(tract.meanCPt.pnc, "/cbica/projects/thalamocortical_development/thalamocortical_structuralconnectivity/individual/PNC/PNC_tractaverage_CPt_primary.csv", row.names = F, quote = F)
+
+tract.meanCPt.hcpd <- tract_average_measures(measure = "CPt", atlas = "glasser", dataset = "hcpd")
+tract.meanCPt.hcpd <- tract.meanCPt.hcpd[tract.meanCPt.hcpd$tract %in% tractlist.hcpd$tract,] 
+write.csv(tract.meanCPt.hcpd, "/cbica/projects/thalamocortical_development/thalamocortical_structuralconnectivity/individual/HCPD/HCPD_tractaverage_CPt_primary.csv", row.names = F, quote = F)
+```
+
+**Correlation of connection-level average CPt between datasets**
+
+*Spearman's rho* 
+
+```{r}
+tract.meanCPt.merged <- merge((tract.meanCPt.pnc %>% select(tract, mean_CPt)), (tract.meanCPt.hcpd %>% select(tract, mean_CPt)), by = "tract") %>% set_names("tract", "mean_CPt.pnc", "mean_CPt.hcpd")
+
+cor.test(tract.meanCPt.merged$mean_CPt.pnc, tract.meanCPt.merged$mean_CPt.hcpd)
+```
+
+*Spatial permutation (spin) based p-value*
+
+```{r}
+spin.data <- left_join(spin.parcels, tract.meanCPt.merged, by = "tract") 
+perm.sphere.p(x = spin.data$mean_CPt.pnc, y = spin.data$mean_CPt.hcpd, perm.id = perm.id.full, corr.type = "pearson") 
+```
+
+*Correlation plot*
+
+```{r}
+ggplot(tract.meanCPt.merged, aes(x = mean_CPt.pnc, y = mean_CPt.hcpd)) +
+  geom_point(color = c("#571766"), size = 0.5) +
+  geom_smooth(method = "lm", color = c("goldenrod1"), formula = y ~ x, linewidth = 0.2) + 
+  theme_classic() +
+  labs(x="\nPNC", y="HCPD\n") +
+  theme(
+  axis.text = element_text(size = 5, family = "Arial", color = c("black")),
+  axis.title.x = element_text(size = 5, family ="Arial", color = c("black")),
+  axis.title.y = element_text(size = 5, family ="Arial", color = c("black")),
+  axis.line = element_line(linewidth = .2), 
+  axis.ticks = element_line(linewidth = .2)) 
+
+ggsave(filename = "/cbica/projects/thalamocortical_development/figures/images/Figure3/CPt_correlation_PNCHCPD.pdf", device = "pdf", dpi = 500, width = 1.5, height = 1.3)
+```
+
+**Thalamocortical connectivity CPt differs by Mesulam cortical type**
+
+*Welch's ANOVA with unequal variances to test for significant differences between cortical types, with Games Howell post-hoc tests*
+
+PNC
+```{r}
+tract.meanCPt.pnc$mesulam_assignment <- factor(tract.meanCPt.pnc$mesulam_assignment, levels = c("idiotypic", "unimodal", "heteromodal", "paralimbic")) 
+
+leveneTest(tract.meanCPt.pnc$mean_CPt ~ tract.meanCPt.pnc$mesulam_assignment) #variances are not equal
+oneway.test(tract.meanCPt.pnc$mean_CPt ~ tract.meanCPt.pnc$mesulam_assignment, var.equal = FALSE) #one-way analysis of means for unequal variances 
+
+tract.meanCPt.pnc %>% games_howell_test(mean_CPt ~ mesulam_assignment)
+```
+
+HCPD
+```{r}
+tract.meanCPt.hcpd$mesulam_assignment <- factor(tract.meanCPt.hcpd$mesulam_assignment, levels = c("idiotypic", "unimodal", "heteromodal", "paralimbic")) 
+
+leveneTest(tract.meanCPt.hcpd$mean_CPt ~ tract.meanCPt.hcpd$mesulam_assignment) #variances are not equal
+oneway.test(tract.meanCPt.hcpd$mean_CPt ~ tract.meanCPt.hcpd$mesulam_assignment, var.equal = FALSE) #one-way analysis of means for unequal variances 
+
+tract.meanCPt.hcpd %>% games_howell_test(mean_CPt ~ mesulam_assignment) 
+```
+
+*Mesulam cortical type plot*
+
+```{r}
+mesulam.means <-  tract.meanCPt.pnc %>% group_by(mesulam_assignment) %>% summarise(mean = mean(mean_CPt)) #calculate mean CPt in each type for plotting 
+mesulam.means
+```
+
+```{r}
+ggplot(tract.meanCPt.pnc, aes(x = mesulam_assignment, y = mean_CPt)) + 
+  geom_point(aes(color = mesulam_assignment, fill = mesulam_assignment), size = 0.25, position = position_jitter(width = .05)) + 
+  geom_flat_violin(aes(fill = mesulam_assignment), position = position_nudge(x = .12, y = 0), alpha = .99, size = 0.2) +
+  geom_point(data = mesulam.means, aes(x = mesulam_assignment, y = mean), shape = 21 , color = "white", stroke = .3,  fill = "black", size = 0.8) + 
+  scale_x_discrete(expand = c(0.125, -0.1)) +
+  scale_color_manual(values = c("#FDC446", "#EA8B57", "#822A7E", "#581768")) +
+  scale_fill_manual(values = c("#FDC446", "#EA8B57", "#822A7E", "#581768")) +
+  theme_classic() +
+  theme(legend.position = "none") +
+  labs(x="\nMesulam Cortical Type", y="Connection CPt\n") +
+  theme(
+  panel.grid.minor = element_blank(),
+  panel.grid.major.x = element_blank(),
+  axis.text = element_text(size = 5, family = "Arial", color = c("black")),
+  axis.title.x = element_text(size = 5, family ="Arial", color = c("black")),
+  axis.title.y = element_text(size = 5, family ="Arial", color = c("black")),
+  axis.line = element_line(linewidth = .2), 
+  axis.ticks = element_line(linewidth = .2)) 
+
+ggsave(filename = "/cbica/projects/thalamocortical_development/figures/images/Figure3/CPt_mesulamtype_PNC.pdf", device = "pdf", dpi = 500, width = 1.85, height = 1.3)
+```
+
+**Thalamocortical connectivity CPt organization along the S-A axis**
+
+*Spearman's correlations*
+
+PNC
+```{r}
+cor.test(tract.meanCPt.pnc$mean_CPt, tract.meanCPt.pnc$SA.axis, method = c("spearman"))
+```
+
+HCPD
+```{r}
+cor.test(tract.meanCPt.hcpd$mean_CPt, tract.meanCPt.hcpd$SA.axis, method = c("spearman"))
+```
+
+*Spatial permutation (spin) based p-value*
+
+PNC
+```{r}
+spin.data <- left_join(spin.parcels, tract.meanCPt.pnc, by = c("orig_parcelname", "label", "tract"))
+perm.sphere.p(x = spin.data$mean_CPt, y = spin.data$SA.axis, perm.id = perm.id.full, corr.type = "pearson") 
+```
+
+HCPD
+```{r}
+spin.data <- left_join(spin.parcels, tract.meanCPt.hcpd, by = c("orig_parcelname", "label", "tract"))
+perm.sphere.p(x = spin.data$mean_CPt, y = spin.data$SA.axis, perm.id = perm.id.full, corr.type = "pearson") 
+```
+
+
+*Thalamocortical FA by S-A axis plot*
+
+```{r}
+ggplot(tract.meanCPt.pnc, aes(x = SA.axis, y = mean_CPt)) +
+  geom_point(aes(color = SA.axis), size = 0.5) +
+  geom_smooth(method = "lm", linewidth = 0.3, color = c("gray25")) + 
+  theme_classic() +
+  scale_fill_gradient2(low = "goldenrod1", mid = "white", high = "#6f1282", guide = "colourbar", aesthetics = "color", name = NULL, limits = c(1, 360), midpoint = 180) +
+  labs(x="\nSensorimotor-association axis rank", y="Connection CPt\n") +
+  theme(legend.position = "none") +
+  theme(
+  panel.grid.minor = element_blank(),
+  panel.grid.major.x = element_blank(),
+  axis.text = element_text(size = 5, family = "Arial", color = c("black")),
+  axis.title.x = element_text(size = 5, family ="Arial", color = c("black")),
+  axis.title.y = element_text(size = 5, family ="Arial", color = c("black")),
+  axis.line = element_line(linewidth = .2), 
+  axis.ticks = element_line(linewidth = .2)) 
+
+ggsave(filename = "/cbica/projects/thalamocortical_development/figures/images/Figure3/CPt_SArank_PNC.pdf", device = "pdf", dpi = 500, width = 1.75, height = 1.3)
+```
+
