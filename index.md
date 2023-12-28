@@ -157,6 +157,8 @@ Thalamocortical connection anatomy was examined at the atlas and the group level
 The following external software was used in this project:
 * qsiprep 0.18.1 container, installed via singularity with [/software_installation/build_qsiprep_image.sh](https://github.com/PennLINC/thalamocortical_development/blob/main/software_installation/build_qsiprep_image.sh)
 * dsistudio container, installed via singularity with [/software_installation/build_dsistudio_image.sh](https://github.com/PennLINC/thalamocortical_development/blob/main/software_installation/build_dsistudio_image.sh)
+* datalad version 0.18.1, installed via anaconda
 * connectome workbench v.1.5.0, downloaded from [humanconnectome.org](https://www.humanconnectome.org/software/get-connectome-workbench#download) into /software/workbench
 * rotate_parcellation algorithm for parcel-based spin testing, cloned from the [rotate_parcellation github](https://github.com/frantisekvasa/rotate_parcellation/tree/master) into /software/rotate_parcellation
-
+* freesurfer version 6.0.0 (freesurfer-Darwin-OSX-stable-pub-v6.0.0-2beb96c), downloadable from [freesurfer's older releases archives](https://surfer.nmr.mgh.harvard.edu/pub/dist/freesurfer/6.0.0/)
+* R version 4.2.3 
