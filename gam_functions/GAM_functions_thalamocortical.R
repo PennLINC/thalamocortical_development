@@ -386,7 +386,7 @@ gam.derivatives <- function(measure, atlas, dataset, region, smooth_var, covaria
     thisVar <- theseVars[[v]]
     thisClass <- varClasses[thisVar]
     if (thisVar == smooth_var) { 
-      thisPred[,smooth_var] = seq(8, 22, length.out = np) #generate a range of np data points, from minimum of smooth term to maximum of smooth term
+      thisPred[,smooth_var] = seq(8, max(df[,smooth_var],na.rm = T), length.out = np) #generate a range of np data points, from minimum of smooth term to maximum of smooth term
     } else {
       switch (thisClass,
               "numeric" = {thisPred[,thisVar] = median(df[,thisVar])}, #make predictions based on median value
