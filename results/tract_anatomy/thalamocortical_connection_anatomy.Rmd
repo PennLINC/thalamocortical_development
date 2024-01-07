@@ -147,6 +147,16 @@ tractlist.pnc <- read.csv("/cbica/projects/thalamocortical_development/thalamoco
 ```
 
 Spatial permutations of the glasser parcellation for spin testing 
+```{r eval=FALSE, include=TRUE}
+#https://github.com/frantisekvasa/rotate_parcellation/tree/master, cloned 8/5/2023
+source("/cbica/projects/thalamocortical_development/software/rotate_parcellation/R/rotate.parcellation.R")
+source("/cbica/projects/thalamocortical_development/software/rotate_parcellation/R/perm.sphere.p.R")
+glasser.coords <- read.table("/cbica/projects/thalamocortical_development/software/rotate_parcellation/sphere_HCP.txt", header=F) #The spherical centroids of the multimodal HCP parcellation on the freesurfer sphere; the 360 regions are originally ordered here as left hemisphere -> right hemisphere. The glasser region list and the S-A axis are ordered right hemisphere -> left hemisphere however so let's update the ordering here for spin tests to ensure correspondence
+glasser.coords <- rbind(glasser.coords[181:360,], glasser.coords[1:180,])
+
+perm.id.full <- rotate.parcellation(coord.l = as.matrix(glasser.coords[181:360,]), coord.r = as.matrix(glasser.coords[1:180,]), nrot = 10000, method = "vasa") #rotate the glasser parcellation 10,000 times on the freesurfer sphere to generate spatial nulls for spin-based permutation significance testing 
+saveRDS(perm.id.full, "/cbica/projects/thalamocortical_development/software/rotate_parcellation/glasser_sphericalrotations_N10000.rds")
+```
 ```{r}
 perm.id.full <- readRDS("/cbica/projects/thalamocortical_development/software/rotate_parcellation/glasser_sphericalrotations_N10000.rds") #10,000 spatial null spins for spin testing (spherical permutation based p-values). Parcel order is right hemisphere -> left hemisphere 
 spin.parcels <- glasser.regions #order of complete set of glasser parcels for spinning
