@@ -1,6 +1,6 @@
 <br>
 <br>
-# Thalamocortical Structural Connectivity Organizes Cortical Developmental Timescales
+# Thalamocortical Connections Mature along a Sensorimotor-Association Axis of Developmental Heterochronicty
 
 ### Project Lead
 Valerie J. Sydnor
@@ -172,4 +172,4 @@ The following external software was used in this project:
 * connectome workbench v.1.5.0, downloaded from [humanconnectome.org](https://www.humanconnectome.org/software/get-connectome-workbench#download) into /software/workbench
 * rotate_parcellation algorithm for parcel-based spin testing, cloned from the [rotate_parcellation github](https://github.com/frantisekvasa/rotate_parcellation/tree/master) into /software/rotate_parcellation
 * freesurfer version 6.0.0 (freesurfer-Darwin-OSX-stable-pub-v6.0.0-2beb96c), downloadable from [freesurfer's older releases archives](https://surfer.nmr.mgh.harvard.edu/pub/dist/freesurfer/6.0.0/)
-* R version 4.2.3 
+* R version 4.2.3; packages: dplyr, plyr, tidyr, tidyverse, purrr, mgcv, gratia, ggplot2, ggseg, ggsegGlasser, ggnewscale, scales, cifti, PupillometryR, car, rstatix, Hmisc, matrixStats, cocor, reshape2, EnvStats, neuroCombat 
