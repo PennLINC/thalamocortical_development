@@ -158,9 +158,13 @@ Analyses were undertaken to characterize thalamocortical connection maturational
 * gam.smooth.predict: A function to predict fitted values of your dependent variable based on a GAM model and a prediction data frame using gratia::fitted_values
 * gam.estimate.smooth: A function to estimate zero-averaged gam smooth functions using gratia::smooth_estimates
 * gam.derivatives: A function to compute derivatives for the smooth term from a main GAM model and for individual draws from the simulated posterior distribution; can return true model derivatives or posterior derivatives 
-These functions were implemented ith dataset-specific thalamocortical connectivity metrics and demographics data for GAM-based analyses in [/gam_functions/fit_ageGams.R](https://github.com/PennLINC/thalamocortical_development/blob/main/gam_functions/fit_ageGams.R). In general, this code applies the above functions to fit age GAMs for each thalamocortical connection of interest and saves out the results  
+
+These functions were implemented with dataset-specific thalamocortical connectivity metrics and demographics data for GAM-based analyses in [/gam_functions/fit_ageGams.R](https://github.com/PennLINC/thalamocortical_development/blob/main/gam_functions/fit_ageGams.R). In general, this code applies the above functions to fit age GAMs for each thalamocortical connection of interest and saves out the results.
+
+After fitting developmental models, the potential contribution of thalamocortical connectivity maturation to hierarchical development along the cortex's S-A axis was investigated in [/results/developmental_effects/thalamocortical_connectivity_development.Rmd](https://github.com/PennLINC/thalamocortical_development/blob/main/results/developmental_effects/thalamocortical_connectivity_development.Rmd). This investigation included quantifying the similarity of developmental effects across datasets (PNC and HCPD), visualizing cortex-wide and region-specific thalamic connectivity developmental profiles and derivative heterochronicity, ascribing functions to cortical regions with early and late maturation thalamic connections, testing how maturational timing varied across the S-A axis (and anatomical axes), and examining how thalamocortical connection maturation relates to the development of non-invasive readouts of plasticity, including development of fMRI-derived E:I ratio, T1/T2 ratio-indexed myelin growth, and fMRI-proxied intrinsic fluctuation amplitude.  
 
 # PROJECT SOFTWARE
+
 The following external software was used in this project:
 * qsiprep versions 0.14.2 and 0.16.1 https://hub.docker.com/r/pennbbl/qsiprep
 * dsistudio container, installed via singularity with [/software_installation/build_dsistudio_image.sh](https://github.com/PennLINC/thalamocortical_development/blob/main/software_installation/build_dsistudio_image.sh)
