@@ -317,7 +317,7 @@ gameffects_FA_glasser_hcpd %>% filter(tract == "thalamus_L_8BL_autotrack") %>% s
 
 **Correlation of thalamocortical connection development effect sizes between datasets**
 
-*Spearman's rho* 
+*Pearson's R* 
 
 ```{r}
 gameffects.merged <- merge(gameffects_FA_glasser_pnc, gameffects_FA_glasser_hcpd, by = c("tract", "label", "orig_parcelname", "mesulam_assignment"), suffixes = c("_pnc", "_hcpd"))
@@ -354,7 +354,7 @@ ggsave(filename = "/cbica/projects/thalamocortical_development/figures/images/Fi
 
 **Correlation of thalamocortical connection age of maturation  between datasets**
 
-*Spearman's rho* 
+*Pearson's R* 
 
 ```{r}
 cor.test(gameffects.merged$smooth.increase.offset_pnc, gameffects.merged$smooth.increase.offset_hcpd)
