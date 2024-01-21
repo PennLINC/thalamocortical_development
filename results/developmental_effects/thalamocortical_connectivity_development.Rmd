@@ -836,9 +836,11 @@ ggplot(cor.credible.intervals, aes(x = age, y = SA.correlation, ymin = lower, ym
 ```{r}
 #Glasser parcel x,y,z coordinates
 load(file = "/cbica/projects/thalamocortical_development/Maps/parcellations/surface/hcp_mmp1.0.rda") #RDA file from the brainGraph package https://github.com/cwatson/brainGraph/blob/master/data/hcp_mmp1.0.rda with glasser region x, y, and z MNI coordinates. regions are in lh --> rh order
+hcp_mmp1.0$x.mni[1:180]  <- hcp_mmp1.0$x.mni[1:180]*-1 #convert R-> L hemisphere coords into medial lateral coords
 hcp_mmp1.0$label <- NA
 hcp_mmp1.0$label[1:180] <- glasser.regions$label[181:360]
 hcp_mmp1.0$label[181:360] <- glasser.regions$label[1:180]
+hcp_mmp1.0 <- hcp_mmp1.0 %>% select(-hemi)
 ```
 
 ```{r}
@@ -895,7 +897,7 @@ compute_axis_correlation(df.dev = gameffects_FA_glasser_pnc, dev.metric = "smoot
 **FDR-corrected p-values across cocor comparisons**
 
 ```{r}
-anatomical.ps <- c(0.0001762558, 1.604827e-10, 0.000236177)
+anatomical.ps <- c(0.0001762558, 5.507392e-08, 0.000236177)
 p.adjust(anatomical.ps, method = c("fdr"))
 ```
 
@@ -905,7 +907,7 @@ axis.results <- data.frame(Axis = factor(), corr = double())
 axis.results <- axis.results %>% add_row(Axis = "S-A", corr = 0.4859962)
 axis.results <- axis.results %>% add_row(Axis = "A-P", corr = 0.3097694)
 axis.results <- axis.results %>% add_row(Axis = "D-V", corr = 0.1192805)
-axis.results <- axis.results %>% add_row(Axis = "M-L", corr = -0.09059357)
+axis.results <- axis.results %>% add_row(Axis = "M-L", corr = 0.03382358)
 axis.results$Axis <- factor(axis.results$Axis, ordered = TRUE, levels = c("S-A", "A-P", "D-V", "M-L"))
 
 ggplot(axis.results, aes(x = Axis, y = corr, fill = Axis)) + 
@@ -922,7 +924,7 @@ ggplot(axis.results, aes(x = Axis, y = corr, fill = Axis)) +
   axis.line = element_line(linewidth = .2), 
   axis.ticks = element_line(linewidth = .2))
 
-ggsave(filename = "/cbica/projects/thalamocortical_development/figures/images/Figure5/Anatomicalaxes_agematuration_comparison_pnc.pdf", device = "pdf", dpi = 500, width = 1.4, height = 1)
+ggsave(filename = "/cbica/projects/thalamocortical_development/figures/images/Figure5/Anatomicalaxes_agematuration_comparison_pnc.pdf", device = "pdf", dpi = 500, width = 1.35, height = 1)
 ```
 
 HCPD
