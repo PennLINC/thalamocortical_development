@@ -194,7 +194,7 @@ write.csv(tract.meanFA.hcpd, "/cbica/projects/thalamocortical_development/thalam
 
 **Correlation of connection-level average FA between datasets**
 
-*Spearman's rho* 
+*Pearson's r* 
 
 ```{r}
 tract.meanFA.merged <- merge((tract.meanFA.pnc %>% select(tract, mean_FA)), (tract.meanFA.hcpd %>% select(tract, mean_FA)), by = "tract") %>% set_names("tract", "mean_FA.pnc", "mean_FA.hcpd")
@@ -302,15 +302,14 @@ cor.test(tract.meanFA.hcpd$mean_FA, tract.meanFA.hcpd$SA.axis, method = c("spear
 PNC
 ```{r}
 spin.data <- left_join(spin.parcels, tract.meanFA.pnc, by = c("orig_parcelname", "label", "tract"))
-perm.sphere.p(x = spin.data$mean_FA, y = spin.data$SA.axis, perm.id = perm.id.full, corr.type = "pearson") 
+perm.sphere.p(x = spin.data$mean_FA, y = spin.data$SA.axis, perm.id = perm.id.full, corr.type = "spearman") 
 ```
 
 HCPD
 ```{r}
 spin.data <- left_join(spin.parcels, tract.meanFA.hcpd, by = c("orig_parcelname", "label", "tract"))
-perm.sphere.p(x = spin.data$mean_FA, y = spin.data$SA.axis, perm.id = perm.id.full, corr.type = "pearson") 
+perm.sphere.p(x = spin.data$mean_FA, y = spin.data$SA.axis, perm.id = perm.id.full, corr.type = "spearman") 
 ```
-
 
 *Thalamocortical FA by S-A axis plot*
 
@@ -396,7 +395,7 @@ write.csv(tract.meanCPt.hcpd, "/cbica/projects/thalamocortical_development/thala
 
 **Correlation of connection-level average CPt between datasets**
 
-*Spearman's rho* 
+*Pearson's r* 
 
 ```{r}
 tract.meanCPt.merged <- merge((tract.meanCPt.pnc %>% select(tract, mean_CPt)), (tract.meanCPt.hcpd %>% select(tract, mean_CPt)), by = "tract") %>% set_names("tract", "mean_CPt.pnc", "mean_CPt.hcpd")
@@ -502,15 +501,14 @@ cor.test(tract.meanCPt.hcpd$mean_CPt, tract.meanCPt.hcpd$SA.axis, method = c("sp
 PNC
 ```{r}
 spin.data <- left_join(spin.parcels, tract.meanCPt.pnc, by = c("orig_parcelname", "label", "tract"))
-perm.sphere.p(x = spin.data$mean_CPt, y = spin.data$SA.axis, perm.id = perm.id.full, corr.type = "pearson") 
+perm.sphere.p(x = spin.data$mean_CPt, y = spin.data$SA.axis, perm.id = perm.id.full, corr.type = "spearman") 
 ```
 
 HCPD
 ```{r}
 spin.data <- left_join(spin.parcels, tract.meanCPt.hcpd, by = c("orig_parcelname", "label", "tract"))
-perm.sphere.p(x = spin.data$mean_CPt, y = spin.data$SA.axis, perm.id = perm.id.full, corr.type = "pearson") 
+perm.sphere.p(x = spin.data$mean_CPt, y = spin.data$SA.axis, perm.id = perm.id.full, corr.type = "spearman") 
 ```
-
 
 *Thalamocortical FA by S-A axis plot*
 
