@@ -88,7 +88,7 @@ The thalamocortical structural connectivity tractography atlas was generated in 
 Diffusion MRI data were preprocessed with qsiprep (0.14.2 for PNC; 0.16.1 for HCPD) as follows:
 
 ```bash
-$ singularity run --cleanenv -B ${PWD} pennlinc-containers/.datalad/environments/qsiprep-${version}/image inputs/data prep participant --stop-on-first-crash --fs-license-file code/license.txt --skip-bids-validation --participant-label "$subid" --unringing-method mrdegibbs --unringing-method mrdegibbs --output-resolution ${res} #res = 1.8 in PNC, 1.5 in HCPD
+$ singularity run --cleanenv -B ${PWD} pennlinc-containers/.datalad/environments/qsiprep-${version}/image inputs/data prep participant --stop-on-first-crash --fs-license-file code/license.txt --skip-bids-validation --participant-label "$subid" --unringing-method mrdegibbs --output-resolution ${res} #res = 1.8 in PNC, 1.5 in HCPD
 ```
 
 Diffusion MRI data were reconstructed using the dsi_studio_gqi reconstruction workflow with qsirecon (0.16.0RC3 for PNC and HCPD) as follows:
