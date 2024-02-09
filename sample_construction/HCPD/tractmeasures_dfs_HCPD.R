@@ -65,6 +65,7 @@ mod.input.fa <- model.matrix(~ FA.glasser.hcpd$age + FA.glasser.hcpd$sex + FA.gl
 fa.harmonized.combat <- neuroCombat(dat = combat.input.fa, batch = batch.input.fa, mod = mod.input.fa)
 FA.harmonized.hcpd <- fa.harmonized.combat$dat.combat %>% t() %>% data.frame() #572 rows of participants, 238 columns of tracts
 FA.harmonized.hcpd <- cbind(FA.glasser.hcpd[,1:5], FA.harmonized.hcpd)
+FA.glasser.hcpd <- FA.harmonized.hcpd #replace original dataframe with harmonized data frame
 
 combat.input.md <- t(MD.glasser.hcpd %>% select(contains("autotrack"))) #238 rows of tracts, 572 columns of participants
 batch.input.md <- MD.glasser.hcpd$site
@@ -72,6 +73,7 @@ mod.input.md <- model.matrix(~ MD.glasser.hcpd$age + MD.glasser.hcpd$sex + MD.gl
 md.harmonized.combat <- neuroCombat(dat = combat.input.md, batch = batch.input.md, mod = mod.input.md)
 MD.harmonized.hcpd <- md.harmonized.combat$dat.combat %>% t() %>% data.frame()
 MD.harmonized.hcpd <- cbind(MD.glasser.hcpd[,1:5], MD.harmonized.hcpd)
+MD.glasser.hcpd <- MD.harmonized.hcpd #replace original dataframe with harmonized data frame
 
 #### Create Final Diffusion Measure Spreadsheets Thresholded by Streamline Count ####
 ## Goal here is to NA out FA/MD information for connections with <5 streamlines (primary analysis) or <10 streamlines (sensitivity analysis), leaving dfs with only to-be-analyzed connections
