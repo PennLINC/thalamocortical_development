@@ -30,8 +30,9 @@ https://github.com/PennLINC/thalamocortical_development/tree/main/thalamocortica
 (see below for use instructions with dsi-studio's autotrack)
 
 ### Cubic Project Directory
-The project directory on cubic is: /cbica/projects/thalamocortical_development
-The directory structure within this top-level project directory is as follows:
+The project directory on cubic is: **/cbica/projects/thalamocortical_development**
+
+The directory structure within the project directory is as follows:
 
 ```
 code: directory with the thalamocortical_development github repo
