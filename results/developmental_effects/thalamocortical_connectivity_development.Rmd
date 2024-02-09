@@ -122,10 +122,6 @@ for(i in 1:length(filenames)){
     assign(Rfilename, x) 
   }
   
-  if(grepl("temporal", Rfilename)){
-    x <- read.csv(files[i], header = FALSE) 
-    assign(Rfilename, x) 
-  }
 }
 rm(x)
 ```
@@ -521,6 +517,7 @@ ggplot(devpattern.neurosynth.pnc, aes(x = term.correlation, y = term, color = te
   labels = c("expectancy"=expression(bold(expectancy)),
   "monitoring"=expression(bold(monitoring)),
   "cognitive_control"=expression(bold(cognitive_control)),
+  "reasoning"=expression(bold(reasoning)),
   "response_inhibition"=expression(bold(response_inhibition)),
   "thought"=expression(bold(thought)),
   "recall"=expression(bold(recall)),
@@ -543,7 +540,7 @@ ggplot(devpattern.neurosynth.pnc, aes(x = term.correlation, y = term, color = te
 ggsave(filename = "/cbica/projects/thalamocortical_development/figures/images/Figure4/Neurosynth_Maturationdecoding.pdf", device = "pdf", dpi = 500, width = 3.35, height = 3.07)
 ```
 
-**Probability of obtaining 10/20 overlapping words given the set of 123 terms**
+**Probability of obtaining 11/20 overlapping words given the set of 123 terms**
 
 ```{r}
 #Function to compute the number of overlapping terms when drawing term sets of size 20 at random for PNC and HCPD nulls
@@ -557,9 +554,9 @@ return(num.overlap)}
 set.seed(1)
 overlap.number <- replicate(10000, compute_term_overlap()) %>% as.data.frame %>% set_names("overlaps")
 
-sprintf("In %s out of 10,000 runs, the term overlap number was equal to or greater than 10", sum(overlap.number$overlaps >= 10))
+sprintf("In %s out of 10,000 runs, the term overlap number was equal to or greater than 11", sum(overlap.number$overlaps >= 11))
 
-sprintf("The permutation-based p value for these overlap counts is %s", sum(overlap.number$overlaps >= 10) / 10000)
+sprintf("The permutation-based p value for these overlap counts is %s", sum(overlap.number$overlaps >= 11) / 10000)
 ```
 
 ```{r}
@@ -570,9 +567,9 @@ summary(overlap.number$overlaps)
 ggplot(overlap.number, aes(x = overlaps)) + 
   geom_histogram(bins = 12, fill = c( "#9c3a80"), color = c("white")) +
   theme_classic() +
-  scale_x_continuous(limits = c(-1, 10), breaks = c(0, 2, 4, 6, 8, 10)) +
+  scale_x_continuous(limits = c(-1, 11), breaks = c(0, 2, 4, 6, 8, 10)) +
   labs(x = "\nNeurosynth term overlap", y = "Count\n") +
-  geom_vline(xintercept = 10, linewidth = .1) +
+  geom_vline(xintercept = 11, linewidth = .1) +
   theme(
   legend.position = "none", 
   axis.text = element_text(size = 5, family = "Arial", color = c("black")),
@@ -763,74 +760,6 @@ ggplot(gameffects_FA_glasser_hcpd, aes(x = SA.axis, y = smooth.increase.offset, 
 ggsave(filename = "/cbica/projects/thalamocortical_development/figures/images/Figure5/SAaxis_agematuration_hcpd.pdf", device = "pdf", dpi = 500, width = 1.93, height = 1.62)
 ```
 
-## S-A axis age resolved analysis
-
-PNC
-
-```{r}
-#Calculate the median derivative - S-A axis correlation value and its 95% credible interval at 100 ages 
-colnames(temporalSAcorr_FA_glasser_pnc) <- sprintf("draw%s", seq(from = 1, to = ncol(temporalSAcorr_FA_glasser_pnc))) #set column names; 100 age x 10,000 posterior draw correlations df
-
-deriv.SAaxis.mediancorr <- apply(temporalSAcorr_FA_glasser_pnc, 1, function(x){median(x)}) #median correlation value at each of the 100 ages
-cor.credible.intervals <- apply(temporalSAcorr_FA_glasser_pnc, 1, function(x){quantile(x, probs = c(0.025, 0.975))}) #compute the credible interval for the correlation value at each age based on all draws
-
-cor.credible.intervals <- t(cor.credible.intervals)
-cor.credible.intervals <- as.data.frame(cor.credible.intervals)
-cor.credible.intervals$age <- as.numeric(seq(8, 23, length.out = 100))
-cor.credible.intervals$SA.correlation <- deriv.SAaxis.mediancorr 
-colnames(cor.credible.intervals) <- c("lower","upper","age","SA.correlation")
-```
-
-```{r}
-ggplot(cor.credible.intervals, aes(x = age, y = SA.correlation, ymin = lower, ymax = upper)) + 
-  geom_ribbon(fill = c(alpha("#323280", 0.4))) +
-  geom_line(linewidth = .2, color = "black") +
-  labs(x="\nAge", y="Developmental Alignment to the S-A Axis\n") +
-  theme_classic() + 
-  scale_x_continuous(breaks=c(8, 12, 16, 20), expand = c(0, .1)) +
-  scale_y_continuous(breaks=c(0, 0.1, 0.2, 0.3, 0.4), limits = c(0, 0.4)) +
-  theme(
-   axis.text = element_text(size = 5, family = "Arial", color = c("black")),
-   axis.title.x = element_text(size = 5, family ="Arial", color = c("black")),
-   axis.title.y = element_text(size = 5, family ="Arial", color = c("black")),
-   axis.line = element_line(linewidth = .2), 
-   axis.ticks = element_line(linewidth = .2)) 
-
-ggsave(filename = "/cbica/projects/thalamocortical_development/figures/images/Figure5/Derivative-SAcorrelation_plot_pnc.pdf", device = "pdf", dpi = 500, width = 1.35, height = 1.03)
-```
-
-HCPD
-
-```{r}
-#Calculate the median derivative - S-A axis correlation value and its 95% credible interval at 100 ages 
-colnames(temporalSAcorr_FA_glasser_hcpd) <- sprintf("draw%s", seq(from = 1, to = ncol(temporalSAcorr_FA_glasser_hcpd))) #set column names; 100 age x 10,000 posterior draw correlations df
-
-deriv.SAaxis.mediancorr <- apply(temporalSAcorr_FA_glasser_hcpd, 1, function(x){median(x)}) #median correlation value at each of the 100 ages
-cor.credible.intervals <- apply(temporalSAcorr_FA_glasser_hcpd, 1, function(x){quantile(x, probs = c(0.025, 0.975))}) #compute the credible interval for the correlation value at each age based on all draws
-
-cor.credible.intervals <- t(cor.credible.intervals)
-cor.credible.intervals <- as.data.frame(cor.credible.intervals)
-cor.credible.intervals$age <- as.numeric(seq(8, 23, length.out = 100))
-cor.credible.intervals$SA.correlation <- deriv.SAaxis.mediancorr 
-colnames(cor.credible.intervals) <- c("lower","upper","age","SA.correlation")
-```
-
-```{r}
-ggplot(cor.credible.intervals, aes(x = age, y = SA.correlation, ymin = lower, ymax = upper)) + 
-  geom_ribbon(fill = c(alpha("#323280", 0.4))) +
-  geom_line(linewidth = .2, color = "black") +
-  labs(x="\nAge", y="Developmental Alignment to the S-A Axis\n") +
-  theme_classic() + 
-  scale_x_continuous(breaks=c(8, 12, 16, 20), expand = c(0, .1)) +
-  #scale_y_continuous(breaks=c(0, 0.1, 0.2, 0.3, 0.4), limits = c(0, 0.4)) +
-  theme(
-   axis.text = element_text(size = 5, family = "Arial", color = c("black")),
-   axis.title.x = element_text(size = 5, family ="Arial", color = c("black")),
-   axis.title.y = element_text(size = 5, family ="Arial", color = c("black")),
-   axis.line = element_line(linewidth = .2), 
-   axis.ticks = element_line(linewidth = .2)) 
-```
-
 ## Thalamocortical maturation along anatomical axes
 
 ```{r}
@@ -894,20 +823,13 @@ compute_axis_correlation(df.dev = gameffects_FA_glasser_pnc, dev.metric = "smoot
 compute_axis_correlation(df.dev = gameffects_FA_glasser_pnc, dev.metric = "smooth.increase.offset", axis = "z.mni")
 ```
 
-**FDR-corrected p-values across cocor comparisons**
-
-```{r}
-anatomical.ps <- c(0.0001762558, 5.507392e-08, 0.000236177)
-p.adjust(anatomical.ps, method = c("fdr"))
-```
-
 ```{r}
 #Put above results into df for plotting
 axis.results <- data.frame(Axis = factor(), corr = double())
-axis.results <- axis.results %>% add_row(Axis = "S-A", corr = 0.4859962)
-axis.results <- axis.results %>% add_row(Axis = "A-P", corr = 0.3097694)
-axis.results <- axis.results %>% add_row(Axis = "D-V", corr = 0.1192805)
-axis.results <- axis.results %>% add_row(Axis = "M-L", corr = 0.03382358)
+axis.results <- axis.results %>% add_row(Axis = "S-A", corr = 0.4877183)
+axis.results <- axis.results %>% add_row(Axis = "A-P", corr = 0.3101209)
+axis.results <- axis.results %>% add_row(Axis = "D-V", corr = 0.1173292)
+axis.results <- axis.results %>% add_row(Axis = "M-L", corr = 0.03024772)
 axis.results$Axis <- factor(axis.results$Axis, ordered = TRUE, levels = c("S-A", "A-P", "D-V", "M-L"))
 
 ggplot(axis.results, aes(x = Axis, y = corr, fill = Axis)) + 
@@ -945,127 +867,6 @@ compute_axis_correlation(df.dev = gameffects_FA_glasser_hcpd, dev.metric = "smoo
 
 ```{r}
 compute_axis_correlation(df.dev = gameffects_FA_glasser_hcpd, dev.metric = "smooth.increase.offset", axis = "z.mni")
-```
-
-**FDR-corrected p-values across cocor comparisons**
-
-```{r}
-anatomical.ps <- c(0.3912361, 7.947443e-11, 4.340955e-06)
-p.adjust(anatomical.ps, method = c("fdr"))
-```
-
-# Thalamocortical Connectivity Variation Developmentally Increases in Association Cortex 
-
-```{r}
-#Function to compute the coefficient of variation across thalamocortical connections within bins of the S-A axis
-compute_SAbin_cov <- function(df.dwi, tractlist){
-  df.dwi.long <- df.dwi %>% melt(., id.vars=c("rbcid", "age", "sex", "mean_fd"),  variable.name = "tract", value.name = "dwi.metric") %>% merge(., S.A.axis, by = "tract", sort = F) 
-  df.dwi.long <- df.dwi.long[df.dwi.long$tract %in% tractlist$tract,] #only consider tracts in this dataset's final tractlist
-  
-  cov.SAbin <- df.dwi.long %>% group_by(rbcid, SA.axis.bin) %>% #for every individual and every bin of the S-A axis
-    do(cov = (cv(as.numeric(.$dwi.metric), na.rm = T))) %>% #calculate the coefficient of variation for the dwi metric within each bin
-    unnest(cols = c(cov))
-  cov.SAbin <- merge(cov.SAbin, (df.dwi %>% select(rbcid, age, sex, mean_fd)), by = "rbcid")
-  
-  return(cov.SAbin) #df with rows length of dataset N*5 and rows of rbcid, SA.axis.bin, cov
-}
-```
-
-PNC
-
-```{r}
-cov.SAbins.pnc <- compute_SAbin_cov(df.dwi = FA.glasser.pnc, tractlist = tractlist.pnc)
-```
-
-```{r}
-#gam interaction test to determine whether changes in cov by age vary across S-A axis bins
-summary(gam(cov ~ s(age, k = 4) + s(SA.axis.bin, k = 4) + ti(age, SA.axis.bin, k = 4), method = "REML", data = cov.SAbins.pnc))
-```
-
-```{r}
-gamresults.bins <- vector("list", length = 5)
-for(bin in 1:5){
-  cov.SAbin.pnc <- cov.SAbins.pnc %>% filter(SA.axis.bin == bin)
-  gamresults.bins[[bin]] <- gam.fit.smooth(measure = "cov", atlas = "SAbin", dataset = "pnc", region = "cov", smooth_var = "age", covariates = "sex + mean_fd", knots = 3, set_fx = TRUE) %>% select(-tract) %>% mutate(SA.bin = bin)
-}
-gamresults.cov.pnc <- do.call(rbind, gamresults.bins)
-
-gamresults.cov.pnc <- gamresults.cov.pnc %>% mutate(fdr.pvalue = p.adjust(Anova.smooth.pvalue, method = c("fdr")))
-
-knitr::kable(gamresults.cov.pnc)
-```
-
-```{r}
-#Function to plot participant-level cov by age in a specific bin of the S-A axis
-plot_SAbin_cov <- function(SA.bin, plotcolor){
-  cov.SAbin.pnc <- cov.SAbins.pnc %>% filter(SA.axis.bin == SA.bin)
-  
- cov_plot <- ggplot(cov.SAbin.pnc, aes(x = age, y = cov)) + 
-   geom_point(color = alpha(plotcolor, 0.4), size = 0.5) +
-   geom_smooth(method = "gam", formula = y ~ s(x, k = 3, fx = T), linewidth = 0.2, color = "black") +
-   theme_classic() +
-   labs(x="\nAge", y="Across-tract variation in FA (cov)\n") +
-   scale_x_continuous(breaks = c(8, 12, 16, 20), expand = c(0,.45)) +
-   scale_y_continuous(breaks = c(0.04, 0.08, 0.12, 0.16, 0.20, 0.24)) +
-   theme(
-    legend.position = "none", 
-    axis.text = element_text(size = 5, family = "Arial", color = c("black")),
-    axis.title.x = element_text(size = 5, family ="Arial", color = c("black")),
-    axis.title.y = element_text(size = 5, family ="Arial", color = c("black")),
-    axis.line = element_line(linewidth = .2), 
-    axis.ticks = element_line(linewidth = .2)) 
-
-  return(cov_plot)
- }
-```
-
-```{r, warning=F, message=F}
-plot_SAbin_cov(SA.bin = 1, plotcolor = "goldenrod1")
-ggsave(filename = "/cbica/projects/thalamocortical_development/figures/images/Figure5/SAbin1_cov_development_pnc.pdf", device = "pdf", dpi = 500, width = 1.67, height = 1.3)
-```
-
-```{r, warning=F, message=F}
-plot_SAbin_cov(SA.bin = 2, plotcolor = "#FFD16A")
-ggsave(filename = "/cbica/projects/thalamocortical_development/figures/images/Figure5/SAbin2_cov_development_pnc.pdf", device = "pdf", dpi = 500, width = 1.67, height = 1.3)
-```
-
-```{r, warning=F, message=F}
-plot_SAbin_cov(SA.bin = 3, plotcolor = "#D7BCDA")
-ggsave(filename = "/cbica/projects/thalamocortical_development/figures/images/Figure5/SAbin3_cov_development_pnc.pdf", device = "pdf", dpi = 500, width = 1.67, height = 1.3)
-```
-
-```{r, warning=F, message=F}
-plot_SAbin_cov(SA.bin = 4, plotcolor ="#9859A4")
-ggsave(filename = "/cbica/projects/thalamocortical_development/figures/images/Figure5/SAbin4_cov_development_pnc.pdf", device = "pdf", dpi = 500, width = 1.67, height = 1.3)
-```
-
-```{r, warning=F, message=F}
-plot_SAbin_cov(SA.bin = 5, plotcolor = "#6f1282")
-ggsave(filename = "/cbica/projects/thalamocortical_development/figures/images/Figure5/SAbin5_cov_development_pnc.pdf", device = "pdf", dpi = 500, width = 1.67, height = 1.3)
-```
-
-HCPD
-
-```{r}
-cov.SAbins.hcpd <- compute_SAbin_cov(df.dwi = FA.glasser.hcpd, tractlist = tractlist.hcpd)
-```
-
-```{r}
-#gam interaction test to determine whether changes in cov by age vary across S-A axis bins
-summary(gam(cov ~ s(age, k = 4) + s(SA.axis.bin, k = 4) + ti(age, SA.axis.bin), method = "REML", data = cov.SAbins.hcpd))
-```
-
-```{r}
-gamresults.bins <- vector("list", length = 5)
-for(bin in 1:5){
-  cov.SAbin.hcpd <- cov.SAbins.hcpd %>% filter(SA.axis.bin == bin)
-  gamresults.bins[[bin]] <- gam.fit.smooth(measure = "cov", atlas = "SAbin", dataset = "hcpd", region = "cov", smooth_var = "age", covariates = "sex + mean_fd", knots = 3, set_fx = TRUE) %>% select(-tract) %>% mutate(SA.bin = bin)
-}
-gamresults.cov.hcpd <- do.call(rbind, gamresults.bins)
-
-gamresults.cov.hcpd <- gamresults.cov.hcpd %>% mutate(fdr.pvalue = p.adjust(Anova.smooth.pvalue, method = c("fdr")))
-
-knitr::kable(gamresults.cov.hcpd)
 ```
 
 # Thalamocortical Connectivity Maturation Mirrors Timescales of Cortical Plasticity 
