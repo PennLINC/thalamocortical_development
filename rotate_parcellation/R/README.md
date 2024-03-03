@@ -1,0 +1,7 @@
+The perm.sphere.p.R script included in this github repo directory was used for parcel-based spatial permutation (spin) testing in this work to generate p-values for the spatial correlation between two cortical surface maps. This code was developed and made publicly available by František Váša at https://github.com/frantisekvasa/rotate_parcellation/blob/master/R/perm.sphere.p.R. The script is included in this thalamocortical_development repo solely to facilitate reproducibility and code implementation efforts, but **all credit to the original author and team**. You can read more about the rotate_parcellation algorithms at https://github.com/frantisekvasa/rotate_parcellation/tree/master. If using the rotate_parcellation scripts, please cite:
+
+Váša F., Seidlitz J., Romero-Garcia R., Whitaker K. J., Rosenthal G., Vértes P. E., Shinn M., Alexander-Bloch A., Fonagy P., Dolan R. J., Goodyer I. M., the NSPN consortium, Sporns O., Bullmore E. T. (2017). Adolescent tuning of association cortex in human structural brain networks. Cerebral Cortex, 28(1):281–294.
+
+Alexander-Bloch, A., Shou H., Liu, S., Satterthwaite, T. D., Glahn, D. C., Shinohara, R. T., Vandekar, S. N. and Raznahan, A. (2018). On testing for spatial correspondence between maps of human brain structure and function. NeuroImage, 178:540-551.  
+
+*Note, the perm.sphere.p.R script is slightly modified here to handle missing data when computing correlations (e.g., use="complete.obs") 
