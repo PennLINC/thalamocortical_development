@@ -27,7 +27,7 @@ library(reshape2)
 library(EnvStats)
 extrafont::loadfonts()
 library(mgcv)
-source("/cbica/projects/thalamocortical_development/software/rotate_parcellation/R/perm.sphere.p.R")
+source("/cbica/projects/thalamocortical_development/code/thalamocortical_development/rotate_parcellation/R/perm.sphere.p.R")
 source("/cbica/projects/thalamocortical_development/code/thalamocortical_development/gam_functions/GAM_functions_thalamocortical.R")
 ```
 
