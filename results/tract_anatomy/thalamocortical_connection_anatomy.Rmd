@@ -231,26 +231,14 @@ ggsave(filename = "/cbica/projects/thalamocortical_development/figures/images/Fi
 
 **Thalamocortical connection FA differs by Mesulam cortical type**
 
-*Welch's ANOVA with unequal variances to test for significant differences between cortical types, with Games Howell post-hoc tests*
-
 PNC
 ```{r}
 tract.meanFA.pnc$mesulam_assignment <- factor(tract.meanFA.pnc$mesulam_assignment, levels = c("idiotypic", "unimodal", "heteromodal", "paralimbic")) #order from idiotypic --> paralimbic
-
-leveneTest(tract.meanFA.pnc$mean_FA ~ tract.meanFA.pnc$mesulam_assignment) #variances are not equal
-oneway.test(tract.meanFA.pnc$mean_FA ~ tract.meanFA.pnc$mesulam_assignment, var.equal = FALSE) #one-way analysis of means for unequal variances 
-
-tract.meanFA.pnc %>% games_howell_test(mean_FA ~ mesulam_assignment) #performs Games-Howell test, which is used to compare all possible combinations of group differences when the assumption of homogeneity of variances is violated 
 ```
 
 HCPD
 ```{r}
 tract.meanFA.hcpd$mesulam_assignment <- factor(tract.meanFA.hcpd$mesulam_assignment, levels = c("idiotypic", "unimodal", "heteromodal", "paralimbic")) 
-
-leveneTest(tract.meanFA.hcpd$mean_FA ~ tract.meanFA.hcpd$mesulam_assignment) #variances are not equal
-oneway.test(tract.meanFA.hcpd$mean_FA ~ tract.meanFA.hcpd$mesulam_assignment, var.equal = FALSE) #one-way analysis of means for unequal variances 
-
-tract.meanFA.hcpd %>% games_howell_test(mean_FA ~ mesulam_assignment) 
 ```
 
 *Mesulam cortical type plot*
@@ -440,26 +428,14 @@ ggsave(filename = "/cbica/projects/thalamocortical_development/figures/images/Fi
 
 **Thalamocortical connection CPt differs by Mesulam cortical type**
 
-*Welch's ANOVA with unequal variances to test for significant differences between cortical types, with Games Howell post-hoc tests*
-
 PNC
 ```{r}
 tract.meanCPt.pnc$mesulam_assignment <- factor(tract.meanCPt.pnc$mesulam_assignment, levels = c("idiotypic", "unimodal", "heteromodal", "paralimbic")) 
-
-leveneTest(tract.meanCPt.pnc$mean_CPt ~ tract.meanCPt.pnc$mesulam_assignment) #variances are not equal
-oneway.test(tract.meanCPt.pnc$mean_CPt ~ tract.meanCPt.pnc$mesulam_assignment, var.equal = FALSE) #one-way analysis of means for unequal variances 
-
-tract.meanCPt.pnc %>% games_howell_test(mean_CPt ~ mesulam_assignment)
 ```
 
 HCPD
 ```{r}
 tract.meanCPt.hcpd$mesulam_assignment <- factor(tract.meanCPt.hcpd$mesulam_assignment, levels = c("idiotypic", "unimodal", "heteromodal", "paralimbic")) 
-
-leveneTest(tract.meanCPt.hcpd$mean_CPt ~ tract.meanCPt.hcpd$mesulam_assignment) #variances are not equal
-oneway.test(tract.meanCPt.hcpd$mean_CPt ~ tract.meanCPt.hcpd$mesulam_assignment, var.equal = FALSE) #one-way analysis of means for unequal variances 
-
-tract.meanCPt.hcpd %>% games_howell_test(mean_CPt ~ mesulam_assignment) 
 ```
 
 *Mesulam cortical type plot*
