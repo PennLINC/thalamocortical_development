@@ -178,12 +178,14 @@ Trajectories in S-A axis quintiles
 
 ```{r}
 #Function to plot predicted developmental trajectories for 10th and 90th percentile envSES factor scores for bins of the S-A axis
-plot_trajectories_byenv_SAaxis <- function(quintile){
+plot_trajectories_byenv_SAaxis <- function(quintile, break.points, y.limits){
   
   # Compute average developmental trajectories for low and high factors scores within each S-A axis quintile
   df <- devtrajectories_byenvSES_FA_glasser_pnc %>% merge(.,  S.A.axis, by = c("tract"))
   df$age <- round(df$age, 3)
   df$envSES <- as.factor(df$envSES)
+  df <- envSES_maineffects_FA_glasser_pnc %>% select(tract, significant) %>% merge(., df, by = "tract")
+  df <- df %>% filter(significant == TRUE)
   
   SAaxismooths.by.envSES <- df %>% group_by(envSES, SA.axis.bin, age) %>% 
                          do(est.mean = mean(.$fitted)) %>% 
@@ -196,6 +198,7 @@ plot_trajectories_byenv_SAaxis <- function(quintile){
   geom_line(color = SA.colorvector[quintile], linewidth = 0.4) +
   theme_classic() +
   labs(x = "\nAge (years)", y = "\n") +
+  scale_y_continuous(breaks = break.points, limits = y.limits) +
   theme(
         legend.position = "none", 
         panel.grid.major = element_blank(),
@@ -222,7 +225,7 @@ ggsave(filename = "/cbica/projects/thalamocortical_development/figures/images/Fi
 ```
 
 ```{r}
-plot_trajectories_byenv_SAaxis(quintile = 1)
+plot_trajectories_byenv_SAaxis(quintile = 1, break.points = c(0.41, 0.42, 0.43, 0.44), y.limits = c(0.405, 0.44))
 ggsave(filename = "/cbica/projects/thalamocortical_development/figures/images/Figure7/Devtrajectory_byenvSES_quintile1.pdf", device = "pdf", dpi = 500, width = 1.27 , height = 1)
 ```
 
@@ -238,7 +241,7 @@ ggsave(filename = "/cbica/projects/thalamocortical_development/figures/images/Fi
 ```
 
 ```{r}
-plot_trajectories_byenv_SAaxis(quintile = 2)
+plot_trajectories_byenv_SAaxis(quintile = 2, break.points = c(0.37, 0.38, 0.39, 0.40), y.limits = c(0.365, 0.40))
 ggsave(filename = "/cbica/projects/thalamocortical_development/figures/images/Figure7/Devtrajectory_byenvSES_quintile2.pdf", device = "pdf", dpi = 500, width = 1.27 , height = 1)
 ```
 
@@ -254,7 +257,7 @@ ggsave(filename = "/cbica/projects/thalamocortical_development/figures/images/Fi
 ```
 
 ```{r}
-plot_trajectories_byenv_SAaxis(quintile = 3)
+plot_trajectories_byenv_SAaxis(quintile = 3, break.points = c(0.33, 0.34, 0.35, 0.36), y.limits = c(0.325, 0.36))
 ggsave(filename = "/cbica/projects/thalamocortical_development/figures/images/Figure7/Devtrajectory_byenvSES_quintile3.pdf", device = "pdf", dpi = 500, width = 1.27 , height = 1)
 ```
 
@@ -270,7 +273,7 @@ ggsave(filename = "/cbica/projects/thalamocortical_development/figures/images/Fi
 ```
 
 ```{r}
-plot_trajectories_byenv_SAaxis(quintile = 4)
+plot_trajectories_byenv_SAaxis(quintile = 4, break.points = c(0.33, 0.34, 0.35, 0.36), y.limits = c(0.33, 0.36))
 ggsave(filename = "/cbica/projects/thalamocortical_development/figures/images/Figure7/Devtrajectory_byenvSES_quintile4.pdf", device = "pdf", dpi = 500, width = 1.27 , height = 1)
 ```
 
@@ -286,7 +289,7 @@ ggsave(filename = "/cbica/projects/thalamocortical_development/figures/images/Fi
 ```
 
 ```{r}
-plot_trajectories_byenv_SAaxis(quintile = 5)
+plot_trajectories_byenv_SAaxis(quintile = 5, break.points = c(0.34, 0.35, 0.36, 0.37), y.limits = c(0.34, 0.375))
 ggsave(filename = "/cbica/projects/thalamocortical_development/figures/images/Figure7/Devtrajectory_byenvSES_quintile5.pdf", device = "pdf", dpi = 500, width = 1.24 , height = 1)
 ```
 
