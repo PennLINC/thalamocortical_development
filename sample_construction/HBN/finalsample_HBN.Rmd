@@ -1,0 +1,89 @@
+---
+title: "HBN Final Sample Selection: Thalamocortical Development"
+author: "Valerie Jill Sydnor"
+output:
+  html_document:
+    code_folding: show
+    highlight: haddock
+    theme: lumen
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(purrr)
+```
+
+# Initial Participant List
+
+```{r}
+#list of RBC ids with processed, non-variant 3T diffusion MRI data, N = 1561
+participants <- read.csv("/cbica/projects/thalamocortical_development/sample_info/HBN/HBN_NonVariantDWI_3T_participantlist.txt", header=F) 
+colnames(participants) <- c("rbcid") 
+```
+
+Autotrack Exclusion 
+
+```{r}
+#remove participants from the initial list without autotrack outputs
+autotrackexclude <- read.csv("/cbica/projects/thalamocortical_development/sample_info/HBN/HBN_autotrack_fail.txt", header = F) #participants to exclude from the final study sample because thalamocortical autotrack failed to run
+colnames(autotrackexclude) <- "rbcid"
+
+participants <- participants[!participants$rbcid %in% autotrackexclude$rbcid,] %>% as.data.frame() %>% setNames(c("rbcid")) #remove participants with unsuccessful autotrack runs, N = 1530
+```
+
+Age Exclusion 
+
+```{r}
+demographics <- read.csv("/cbica/projects/thalamocortical_development/sample_info/HBN/hbn_participants.tsv", sep = "\t")
+demographics <- demographics[demographics$participant_id %in% participants$rbcid,] #demographics for just participants with processed, non-variant, 3T dwi data + autotrack
+```
+
+```{r}
+ageexclude <- demographics %>% filter(age < 8) %>% select(participant_id)
+
+participants <- participants[!participants$rbcid %in% ageexclude$participant_id,] %>% as.data.frame() %>% setNames(c("rbcid")) #remove participants < 8 years old; N = 1149 individuals ages 8-22 without non-variant diffusion MRI and autotrack outputs
+```
+
+# Construct Final Sample
+
+T1 Quality Exclusion
+
+```{r}
+T1exclude <- read.csv("/cbica/projects/thalamocortical_development/sample_info/HBN/study-HBN_desc-T1_qc.tsv", sep = "\t")
+T1exclude <- T1exclude[T1exclude$participant_id %in% participants$rbcid,] #T1 quality manual ratings for participants with processed, non-variant, 3T dwi data
+T1include <- T1exclude %>% filter(qc_determination != "Fail") #only retain participant IDs that passed T1 QC
+
+participants.final <- participants[participants$rbcid %in% T1include$participant_id,] %>% as.data.frame() %>% set_names("rbcid") #remove 53 participants that failed T1 QC from the initial sample of N = 1149, remaining N = 1096
+```
+
+Diffusion Quality Exclusion
+
+```{r}
+dwi.qc <- read.csv("/cbica/projects/thalamocortical_development/sample_info/HBN/HBN_DWI_QCmetrics.csv") #diffusion scan acquisition parameters and quality metrics
+```
+
+```{r}
+qualityexclude <- dwi.qc %>% filter(t1_neighbor_corr < 0.7) %>% select(subject_id) #participants to exclude from the final study sample based on processed diffusion MRI T1 neighborhood correlation
+
+participants.final <- participants.final[!participants.final$rbcid %in% qualityexclude$subject_id,] %>% as.data.frame() %>% setNames(c("rbcid")) #remove 10 participants from the 1096 for poor processed diffusion scan quality, remaining N = 1086
+```
+
+Diffusion Scan Head Motion Exclusion
+
+```{r}
+motionexclude <- dwi.qc %>% filter(mean_fd > 1) %>% select(subject_id) #participants to exclude from the final study sample based on high in-scanner head motion during the diffusion runs
+
+participants.final <- participants.final[!participants.final$rbcid %in% motionexclude$subject_id,] %>% as.data.frame() %>% setNames(c("rbcid")) #remove 127 participants from the sample of 1086 due to in-scanner head motion, remaining N = 959
+```
+
+# Save Final Sample 
+
+```{r}
+write.csv(participants.final, "/cbica/projects/thalamocortical_development/sample_info/HBN/HBN_thalamocortical_finalsample_N959.csv", quote = F, row.names = F)
+```
+
+
