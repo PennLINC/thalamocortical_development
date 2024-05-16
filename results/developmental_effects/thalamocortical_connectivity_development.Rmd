@@ -1063,7 +1063,7 @@ amplitude.thalamus.pnc <- perm.sphere.p(x = plasticity.dev.pnc$smooth.increase.o
 ggplot(plasticity.dev.pnc, aes(x = amplitude.agedecline, y = smooth.increase.offset, color = amplitude.agedecline)) +
   geom_point(size = 0.5, color = "#7B2C80") +
   geom_smooth(method = "lm", color = c("black"), formula = y ~ x, linewidth = 0.2) + 
-  scale_x_continuous(limits = c(8.2, 21.2), breaks = c(8, 10, 12, 14, 16, 18, 20)) +
+  scale_x_continuous(limits = c(10, 21.2), breaks = c(8, 10, 12, 14, 16, 18, 20)) +
   scale_y_continuous(limits = c(12, 23), breaks = c(12, 14, 16, 18, 20, 22)) +
   theme_classic() +
   labs(x="Amplitude decrease onset (years)\n", y="\nThalamocortical age of maturation (years)") +
@@ -1186,7 +1186,7 @@ amplitude.thalamus.hcpd <- perm.sphere.p(x = plasticity.dev.hcpd$smooth.increase
 ggplot(plasticity.dev.hcpd, aes(x = amplitude.agedecline, y = smooth.increase.offset, color = amplitude.agedecline)) +
   geom_point(size = 0.5, color = "#7B2C80") +
   geom_smooth(method = "lm", color = c("black"), formula = y ~ x, linewidth = 0.2) + 
-  scale_x_continuous(limits = c(8.2, 21.2), breaks = c(8, 10, 12, 14, 16, 18, 20)) +
+  scale_x_continuous(limits = c(10, 21.2), breaks = c(8, 10, 12, 14, 16, 18, 20)) +
   scale_y_continuous(limits = c(12, 23), breaks = c(12, 14, 16, 18, 20, 22)) +
   theme_classic() +
   labs(x="Amplitude decrease onset (years)\n", y="\nThalamocortical age of maturation (years)") +
