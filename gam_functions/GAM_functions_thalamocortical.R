@@ -554,7 +554,8 @@ gam.factorsmooth.interaction <- function(measure, atlas, dataset, region, smooth
   gam.int.F <- gam.results$s.table[2,3]
   gam.int.pvalue <- gam.results$s.table[2,4]
 
-  interaction.stats <- cbind(parcel, gam.int.F, gam.int.pvalue)
+  interaction.stats <- data.frame(as.character(parcel), as.numeric(gam.int.F), as.numeric(gam.int.pvalue))
+  colnames(interaction.stats) <- c("tract", "GAM.int.Fvalue", "GAM.int.pvalue")
   return(interaction.stats)
 }
   
