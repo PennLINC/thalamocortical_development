@@ -1,6 +1,6 @@
 <br>
 <br>
-# Thalamocortical Connections Mature along a Sensorimotor-Association Axis of Developmental Heterochronicty
+# Thalamocortical Connections Mature along a Sensorimotor-Association Axis of Cortical Developmental Heterochronicty
 
 ### Project Lead
 Valerie J. Sydnor
@@ -8,11 +8,12 @@ Valerie J. Sydnor
 ### Faculty Lead
 Theodore D. Satterthwaite
 
-### Analytic Replicator
-Matthew Cieslak
+### Analytic Replicators
+Joelle Bagautdinova and Matthew Cieslak
 
 ### Collaborators 
-Frank Yeh, Bart Larsen, Deanna Barch, Michael Arcaro, Sydney Covitz, Raquel E. Gur, Ruben C., Gur, Russell T. Shinohara, Allyson P. Mackey  
+Bart Larsen, Aaron F. Alexander-Bloch, Michael J. Arcaro, Deanna M. Barch, Dani S. Bassett, Philip A. Cook, Sydney Covitz, Alexandre R. Franco, Raquel E. Gur, Ruben C. Gur, Allyson P. Mackey, Steven L. Meisler, Kahini Mehta, Michael P. Milham, Tyler M. Moore, Armin Raznahan, David R. Roalf, Taylor Salo, Gabriel Schubiner, Jakob Seidlitz, Russell T. Shinohara, James M. Shine, Fang-Cheng Yeh
+
 ### Project Start Date
 December 2022
 
@@ -20,14 +21,13 @@ December 2022
 Manuscript in preparation
 
 ### Datasets
-RBC-PNC and RBC-HCPD
+PNC, HCPD, HBN
 
 ### Github Repository
 https://github.com/PennLINC/thalamocortical_development
 
 ### Atlas of Human Thalamocortical Connections
-https://github.com/PennLINC/thalamocortical_development/tree/main/thalamocortical_autotrack_template 
-(see below for use instructions with dsi-studio's autotrack)
+The thalamocortical tractometry atlas is available [here](https://github.com/PennLINC/thalamocortical_development/tree/main/thalamocortical_autotrack_template). See below for implementation instructions 
 
 ### Cubic Project Directory
 The project directory on cubic is: **/cbica/projects/thalamocortical_development**
@@ -37,13 +37,14 @@ The directory structure within the project directory is as follows:
 ```
 code: directory with the thalamocortical_development github repo
 cortical_anatomy: PNC and HCPD freesurfer tabulate anatomical statistics
+figures: manuscript plots and images, compiled into final Figures
 Maps: surface parcellation files (parcellations/), S-A axis github repo (S-A_ArchetypalAxis/), fluctuation amplitude development maps (boldamplitude_development/), myelin development maps (myelin_development/), E:I ratio development maps (EI_development/), thalamic Cpt gradient (thalamusgradient_CPt_muller/)
 sample_info: sample demographics, environment data, and final project participant lists
 software: project software 
 Templates: MNI template and HCP-1065 YA FIB templates
 thalamocortical_results: GAM outputs for developmental and environmental effects
 thalamocortical_structuralconnectivity/template: thalamocortical template tractography
-thalamocortical_structuralconnectivity/individual: PNC and HCPD autotrack outputs 
+thalamocortical_structuralconnectivity/individual: PNC, HCPD, and HBN autotrack outputs 
 qsirecon_0.16.0RC3: PNC and HCPD qsirecon clones with dsi-studio gqi and fib outputs
 ```
 
@@ -52,7 +53,7 @@ qsirecon_0.16.0RC3: PNC and HCPD qsirecon clones with dsi-studio gqi and fib out
 <br>
 # CODE DOCUMENTATION
 
-The analytic and statistical workflow implemented in this research is described below and links to all corresponding code on github are provided. This workflow begins with creation of an atlas of human thalamocortical connections, preprocessing and reconstruction of PNC and HCPD diffusion MRI data, generation of individual-specific thalamocortical connections, quantification and harmonization of thalamocortical connectivity metrics, and examination of group-level and individual-level thalamocortical anatomy characteristics. The workflow continues with the fitting of generalized additive models to study relationships between thalamocortical connectivity, age, and the environment and analyses aimed at characterizing thalamocortical structural connectivity development and its influence on hierarchical cortical development and organization along the sensorimotor-association axis. 
+The analytic and statistical workflow implemented in this research is described below; links to corresponding code on github are provided. This workflow begins with creation of an atlas of human thalamocortical connections. It continues with preprocessing and reconstruction of PNC, HCPD, and HBN diffusion MRI data, generation of individual-specific thalamocortical connections in youth datasets, and quantification and harmonization of thalamocortical connectivity metrics. It then transitions to fitting of generalized additive models to study relationships between thalamocortical connectivity, age, and the environment and describes analyses aimed at characterizing thalamocortical structural connectivity development and its influence on hierarchical cortical development along the sensorimotor-association axis. 
 <br>
 
 ### Creation of an Atlas of Human Thalamocortical Connections (HCP-Young Adult)
@@ -88,29 +89,31 @@ The thalamocortical structural connectivity tractography atlas was generated in 
 >
 >** It is highly recommended that you use this thalamocortical tractography atlas with the same autotrack parameters validated here for participant-specific data (see section "Delineation of Individual-Specific Thalamocortical Connections" below). These parameters include --otsu_threshold=0.5, --smoothing=1, --tolerance=10, --tip_iteration=0, --track_voxel_ratio=4, --check_ending=0, and (for command line usage) --yield_rate=0.0000001. Modifying the tolerance parameter may be reasonable to delineate even stricter trajectory-based pathways (lower the tolerance) or to allow for potential greater individual-specific differences in anatomy to emerge (increase the threshold). ** 
 
-### Preprocessing and Reconstruction of Diffusion MRI Data (PNC and HCP-Development)
-Diffusion MRI data were preprocessed with qsiprep (0.14.2 for PNC; 0.16.1 for HCPD) as follows:
+### Preprocessing and Reconstruction of Diffusion MRI Data (Philadelphia Neurodevelopment Cohort, HCP-Development, Healthy Brain Network)
+Diffusion MRI data were preprocessed with qsiprep (0.14.2 for PNC and HBN; 0.16.1 for HCPD) as follows:
 
 ```bash
-$ singularity run --cleanenv -B ${PWD} pennlinc-containers/.datalad/environments/qsiprep-${version}/image inputs/data prep participant --stop-on-first-crash --fs-license-file code/license.txt --skip-bids-validation --participant-label "$subid" --unringing-method mrdegibbs --output-resolution ${res} #res = 1.8 in PNC, 1.5 in HCPD
+$ singularity run --cleanenv -B ${PWD} pennlinc-containers/.datalad/environments/qsiprep-${version}/image inputs/data prep participant --stop-on-first-crash --fs-license-file code/license.txt --skip-bids-validation --participant-label "$subid" --unringing-method mrdegibbs --output-resolution ${res} #res = 1.8 in PNC and HBN, 1.5 in HCPD
 ```
 
-Diffusion MRI data were reconstructed using the dsi_studio_gqi reconstruction workflow with qsirecon (0.16.0RC3 for PNC and HCPD) as follows:
+Diffusion MRI data were reconstructed using the dsi_studio_gqi reconstruction workflow with qsirecon (0.16.0RC3 for PNC, HCPD, HBN) as follows:
 
 ```bash
 $ singularity run --cleanenv -B ${PWD} pennlinc-containers/.datalad/environments/qsiprep-0-16-0RC3/image inputs/data/qsiprep/qsiprep qsirecon participant --participant_label $subid -recon-input inputs/data/qsiprep/qsiprep --fs-license-file code/license.txt --stop-on-first-crash --recon-only --skip-odf-reports --freesurfer-input inputs/data/fmriprep/freesurfer --recon-spec ${PWD}/code/gqi_hsvs.json 
 ```
 
-Preprocessing and reconstruction workflows were executed with datalad using the template scripts in /qsiprep, including [/PNC/qsiprep_call_PNC.sh](https://github.com/PennLINC/thalamocortical_development/blob/main/qsiprep/PNC/qsiprep_call_PNC.sh), [/HCPD/qsiprep_call_HCPD.sh](https://github.com/PennLINC/thalamocortical_development/blob/main/qsiprep/HCPD/qsiprep_call_HCPD.sh), [/PNC/qsirecon_call_PNC.sh](https://github.com/PennLINC/thalamocortical_development/blob/main/qsiprep/PNC/qsirecon_call_PNC.sh), [/HCPD/qsirecon_call_HCPD](https://github.com/PennLINC/thalamocortical_development/blob/main/qsiprep/HCPD/qsirecon_call_HCPD.sh). Datalad outputs were cloned for use in this project using the scripts in [/datalad](https://github.com/PennLINC/thalamocortical_development/tree/main/datalad).
+Preprocessing and reconstruction workflows were executed with datalad using the template scripts in [/qsiprep](https://github.com/PennLINC/thalamocortical_development/tree/main/qsiprep), including [/PNC/qsiprep_call_PNC.sh](https://github.com/PennLINC/thalamocortical_development/blob/main/qsiprep/PNC/qsiprep_call_PNC.sh), [/HCPD/qsiprep_call_HCPD.sh](https://github.com/PennLINC/thalamocortical_development/blob/main/qsiprep/HCPD/qsiprep_call_HCPD.sh),[/HBN/qsiprep_call_HBN.sh](https://github.com/PennLINC/thalamocortical_development/blob/main/qsiprep/HBN/qsiprep_call_HBN.sh),[/PNC/qsirecon_call_PNC.sh](https://github.com/PennLINC/thalamocortical_development/blob/main/qsiprep/PNC/qsirecon_call_PNC.sh), [/HCPD/qsirecon_call_HCPD](https://github.com/PennLINC/thalamocortical_development/blob/main/qsiprep/HCPD/qsirecon_call_HCPD.sh), and [/HBN/qsirecon_call_HBN.sh](https://github.com/PennLINC/thalamocortical_development/blob/main/qsiprep/HBN/qsirecon_call_HBN.sh). Datalad outputs were cloned for use in this project using the scripts in [/datalad](https://github.com/PennLINC/thalamocortical_development/tree/main/datalad).
 
 
-### Delineation of Individual-Specific Thalamocortical Connections (PNC and HCP-Development)
-Person-specific thalamocortical structural connections were delineated for PNC and HCPD participants using the thalamic tractography atlas and dsi-studio's autotrack. A relatively stringent Hausdorff distance threhold was used; the selected threshold balanced the recovery of person-specific anatomy with mitigation of false positive streamlines and regionally non-specific streamlines. The script [/thalamocortical_structuralconnectivity/individual/thalamocortical_autotrack.sh](https://github.com/PennLINC/thalamocortical_development/blob/main/thalamocortical_structuralconnectivity/individual/thalamocortical_autotrack.sh) was run twice for every participant, first to generate participant -> template registration files (gqi.fib.gz.icbm152_adult.map.gz) for use with autotrack and then to reconstruct all thalamocortical connections. 
+### Delineation of Individual-Specific Thalamocortical Connections (Philadelphia Neurodevelopment Cohort, HCP-Development, Healthy Brain Network)
+Person-specific thalamocortical structural connections were delineated for PNC, HCPD, and HBN participants using the thalamic tractography atlas and dsi-studio's autotrack. A relatively stringent Hausdorff distance threhold was used; the selected threshold balanced the recovery of person-specific anatomy with mitigation of false positive streamlines and regionally non-specific streamlines. The script [/thalamocortical_structuralconnectivity/individual/thalamocortical_autotrack.sh](https://github.com/PennLINC/thalamocortical_development/blob/main/thalamocortical_structuralconnectivity/individual/thalamocortical_autotrack.sh) was run twice for every participant, first to generate participant -> template registration files (gqi.fib.gz.icbm152_adult.map.gz) for use with autotrack and then to reconstruct all thalamocortical connections. 
 
 For PNC, registration was accomplished with [/thalamocortical_structuralconnectivity/individual/PNC/autotrack_registration_PNC.sh](https://github.com/PennLINC/thalamocortical_development/blob/main/thalamocortical_structuralconnectivity/individual/PNC/autotrack_registration_PNC.sh) and autotrack tract generation was executed with [/thalamocortical_structuralconnectivity/individual/PNC
 /run_autotrack_PNC.sh](https://github.com/PennLINC/thalamocortical_development/blob/main/thalamocortical_structuralconnectivity/individual/PNC/run_autotrack_PNC.sh).
 
 For HCPD, registration was accomplished with [/thalamocortical_structuralconnectivity/individual/HCPD/autotrack_registration_HCPD.sh](https://github.com/PennLINC/thalamocortical_development/blob/main/thalamocortical_structuralconnectivity/individual/HCPD/autotrack_registration_HCPD.sh) and autotrack tract generation was executed with [/thalamocortical_structuralconnectivity/individual/HCPD/run_autotrack_HCPD.sh](https://github.com/PennLINC/thalamocortical_development/blob/main/thalamocortical_structuralconnectivity/individual/HCPD/run_autotrack_HCPD.sh).
+
+For HBN, registration was accomplished with [/thalamocortical_structuralconnectivity/individual/HBN/autotrack_registration_HBN.sh](https://github.com/PennLINC/thalamocortical_development/blob/main/thalamocortical_structuralconnectivity/individual/HBN/autotrack_registration_HBN.sh) and autotrack tract generation was executed with [/thalamocortical_structuralconnectivity/individual/HBN/run_autotrack_HBN.sh](https://github.com/PennLINC/thalamocortical_development/blob/main/thalamocortical_structuralconnectivity/individual/HBN/run_autotrack_HBN.sh).
 
 * Autotrack was run with the following parameters:
 ```
@@ -130,7 +133,7 @@ Note, thalamocortical_autotrack.sh was run twice (first to generate registration
 ### Quantification of Thalamocortical Connectivity Metrics
 Diffusion MRI-derived connectivity metrics (FA, MD, streamline count) and gene expression-derived thalamic gradient values (thalamus calbindin-parvalbumin CPt gradient) were extracted for every participant's autotrack-generated thalamocortical connections, using the following code:
 
-* **Diffusion-derived connectivity metrics**: Dataset-specific spreadsheets containing autotrack output statistics for every reconstructed thalamocortical connection were produced by running [/tract_measures/diffusion_metrics/thalamocortical_dwimeasures.py](https://github.com/PennLINC/thalamocortical_development/blob/main/tract_measures/diffusion_metrics/thalamocortical_dwimeasures.py) with a "dataset" command line argument of either "PNC" or "HCPD" (example below). This python script takes in the dataset argument and generates a dataset-specific .csv file in long format with all diffusion metrics extracted for all tracts across all participants. 
+* **Diffusion-derived connectivity metrics**: Dataset-specific spreadsheets containing autotrack output statistics for every reconstructed thalamocortical connection were produced by running [/tract_measures/diffusion_metrics/thalamocortical_dwimeasures.py](https://github.com/PennLINC/thalamocortical_development/blob/main/tract_measures/diffusion_metrics/thalamocortical_dwimeasures.py) with a "dataset" command line argument (i.e., "PNC", "HCPD", or "HBN"; example below). This python script takes in the dataset argument and generates a dataset-specific .csv file in long format with all diffusion metrics extracted for all tracts across all participants. 
 
 ```bash
 $ python thalamocortical_dwimeasures.py PNC
@@ -145,47 +148,52 @@ $ python thalamocortical_CPtvalues.py HCPD
 ```
 
 ### Sample Construction 
-1358 PNC participants and 640 (Lifespan 2.0 release) HCPD participants had dominant group diffusion MRI acquisitions (i.e., non-variant [CuBIDS](https://cubids.readthedocs.io/en/latest/about.html) acquisitions) and were considered for inclusion in this research. The following exclusion criterion were then applied to generate the final samples of 1145 PNC participants and 572 HCPD participants:
+1358 PNC participants, 640 (Lifespan 2.0 release) HCPD participants, and 1530 (Data Releases 1-9) HBN participants had dominant group diffusion MRI acquisitions (i.e., non-variant [CuBIDS](https://cubids.readthedocs.io/en/latest/about.html) acquisitions) and were considered for inclusion in this research. The following exclusion criterion were then applied to generate the final samples of 1145 PNC participants, 572 HCPD participants, and 959 HBN participants:
 
 > - health history exclusions, for example history of cancer, MS, seizures, or incidentally-encountered brain structure abnormalities  
 > - T1 quality exclusion, based on visual QC  
 > - diffusion acquisition exclusion for missing runs (HCPD only)  
 > - diffusion quality exclusion, based on the neighborhood correlation (nc) of the preprocessed, T1w-aligned diffusion data. Note, nc values differ by sampling scheme, thus different thresholds were used in PNC and HCPD. Thresholds were chosen based on nc histograms by selecting a value that cut off the low-quality (left-skewed) data tail.  
 > - diffusion scan head motion exclusion, based on mean framewise displacement (threshold = 1). Note, ~6% of the presently retained sample was excluded for both PNC and HCPD following diffusion quality and head motion exclusions  
-> - An age exclusion (< 8 years old) was also applied to HCPD in order to match ages across samples and directly assess reproducibility. This excluded only 2.4% of the final HCPD sample participants, and thus has the additional benefit of not biasing gam smooth fits to very few data points at the lower end of the age range
+> - An age exclusion (< 8 years old) was also applied to HCPD and HBN in order to match ages across samples and more appositely assess reproducibility of developmental results. 
 
-Final study samples were constructed following the criterion outlined above in [/sample_construction/PNC/finalsample_PNC.Rmd](https://github.com/PennLINC/thalamocortical_development/blob/main/sample_construction/PNC/finalsample_PNC.Rmd) and [/sample_construction/HCPD/finalsample_HCPD.Rmd](https://github.com/PennLINC/thalamocortical_development/blob/main/sample_construction/HCPD/finalsample_HCPD.Rmd). This sample construction procedure utilized diffusion scan acqusition, quality, and head motion information provided in qsiprep ImageQC_dwi.csvs, which were collated into dataset-specific diffusion QC metric .csvs with [/sample_construction/PNC/diffusion_qcmetrics_PNC.py](https://github.com/PennLINC/thalamocortical_development/blob/main/sample_construction/PNC/diffusion_qcmetrics_PNC.py) and [/sample_construction/HCPD/diffusion_qcmetrics_HCPD.py](https://github.com/PennLINC/thalamocortical_development/blob/main/sample_construction/HCPD/diffusion_qcmetrics_HCPD.py) 
+Final study samples were constructed following the criterion outlined above in [/sample_construction/PNC/finalsample_PNC.Rmd](https://github.com/PennLINC/thalamocortical_development/blob/main/sample_construction/PNC/finalsample_PNC.Rmd), [/sample_construction/HCPD/finalsample_HCPD.Rmd](https://github.com/PennLINC/thalamocortical_development/blob/main/sample_construction/HCPD/finalsample_HCPD.Rmd), and [/sample_construction/HBN/finalsample_HBN.Rmd](https://github.com/PennLINC/thalamocortical_development/blob/main/sample_construction/HBN/finalsample_HBN.Rmd). This sample construction procedure utilized diffusion scan acqusition, quality, and head motion information provided in qsiprep ImageQC_dwi.csvs, which were collated into dataset-specific diffusion QC metric .csvs with [/sample_construction/PNC/diffusion_qcmetrics_PNC.py](https://github.com/PennLINC/thalamocortical_development/blob/main/sample_construction/PNC/diffusion_qcmetrics_PNC.py), [/sample_construction/HCPD/diffusion_qcmetrics_HCPD.py](https://github.com/PennLINC/thalamocortical_development/blob/main/sample_construction/HCPD/diffusion_qcmetrics_HCPD.py), and [/sample_construction/HBN/diffusion_qcmetrics_HBN.py](https://github.com/PennLINC/thalamocortical_development/blob/main/sample_construction/HBN/diffusion_qcmetrics_HBN.py). 
 
 
 ### Generation of Dataset-Specific Analysis Dfs and Tract Lists
 To facilitate analysis of participant-level thalamocortical connectivity data, dataset-specific demographics + diffusion dataframes and dataset-specific tract lists were generated.  
 
-* **Dataset-specific demographics and diffusion dfs**: Analytic dataframes were created for PNC and HCPD that include demographics and thalamocortical structural connectivity metrics for the final study sample. In HCPD, final sample thalamocortical metrics were harmonized with comBat to mitigate site effects. In both datasets, thalamocortical connections with < 5 streamlines (primary analysis) were removed from final analytic dataframes at the participant-level; these connections were not included in further analyses. These steps (dataframe creation, harmonization, and streamline thresholding) were implemented with [/sample_construction/PNC/tractmeasures_dfs_PNC.R](https://github.com/PennLINC/thalamocortical_development/blob/main/sample_construction/PNC/tractmeasures_dfs_PNC.R) and [sample_construction/HCPD/tractmeasures_dfs_HCPD.R](https://github.com/PennLINC/thalamocortical_development/blob/main/sample_construction/HCPD/tractmeasures_dfs_HCPD.R). 
-* **Dataset-specific tract lists**: Only connections that could be reliably and robustly delineated at the individual level were studied in this work. To identify thalamocortical connections to study in PNC and HCPD, [tract_measures/tractlists/thalamocortical_tractlists.R](https://github.com/PennLINC/thalamocortical_development/blob/main/tract_measures/tractlists/thalamocortical_tractlists.R) was run. For the primary analysis we implemented a connection-level streamline count threshold of >= 5 (as noted above) and a dataset-level connection inclusion threshold of >= 90% of participants. In PNC and HCPD, 6% and 3% of thalamocortical connections present in the atlas were excluded from analysis, respectively, as they were sparsely reconstructed in > 10% of participants. 
+* **Dataset-specific demographics and diffusion dfs**: Analytic dataframes were created for each developmental sample that include demographics and thalamocortical structural connectivity metrics for the final study sample. In HCPD and HBN, final sample thalamocortical metrics were harmonized with comBat to mitigate site effects. In all datasets, thalamocortical connections with < 5 streamlines were removed from final analytic dataframes at the participant-level; these connections were not included in further analyses. These steps (dataframe creation, harmonization, and streamline thresholding) were implemented with [/sample_construction/PNC/tractmeasures_dfs_PNC.R](https://github.com/PennLINC/thalamocortical_development/blob/main/sample_construction/PNC/tractmeasures_dfs_PNC.R), [sample_construction/HCPD/tractmeasures_dfs_HCPD.R](https://github.com/PennLINC/thalamocortical_development/blob/main/sample_construction/HCPD/tractmeasures_dfs_HCPD.R), and [/sample_construction/HBN/tractmeasures_dfs_HBN.R](https://github.com/PennLINC/thalamocortical_development/blob/main/sample_construction/HBN/tractmeasures_dfs_HBN.R). 
+* **Dataset-specific tract lists**: Only connections that could be reliably and robustly delineated at the individual level were studied in this work. To identify thalamocortical connections to study, [tract_measures/tractlists/thalamocortical_tractlists.R](https://github.com/PennLINC/thalamocortical_development/blob/main/tract_measures/tractlists/thalamocortical_tractlists.R) was run. We implemented a connection-level streamline count threshold of >= 5 (as noted above) and a dataset-level connection inclusion threshold of >= 90% of participants. 
 
 ### Thalamocortical Connectivity: Atlas Characteristics and Anatomical Gradients
-Thalamocortical connection anatomy was examined at the atlas and the group level to understand characteristics of reconstructed thalamic connections and to uncover cortical and thalamic anatomical gradients. This exploration included quantifying cortical surface coverage for the thalamocortical atlas (atlas-based); comparing the surface area and sulcal depth of cortical parcels with versus without thalamic connections represented in the atlas (atlas-based); surveying variation in thalamocortical connectivity strength across Mesulam cortical types and the S-A axis (group-based in PNC and HCPD); and testing whether thalamic endpoint core-matrix gradients values differed across Mesulam types and the S-A axis (group-based in PNC and HCPD). These analyses were conducted in [/results/tract_anatomy/thalamocortical_connection_anatomy.Rmd](https://github.com/PennLINC/thalamocortical_development/blob/main/results/tract_anatomy/thalamocortical_connection_anatomy.Rmd); a knit version of thalamocortical_connection_anatomy.html can be viewed [here](https://htmlpreview.github.io/?https://github.com/PennLINC/thalamocortical_development/blob/main/results/tract_anatomy/thalamocortical_connection_anatomy.html). 
+Thalamocortical connection anatomy was examined at the atlas and the group level (in PNC and HCPD) to understand characteristics of reconstructed thalamic connections and to uncover cortical and thalamic anatomical gradients. This exploration included quantifying cortical surface coverage for the thalamocortical atlas (atlas-based); comparing the surface area and sulcal depth of cortical parcels with versus without thalamic connections represented in the atlas (atlas-based); and testing whether thalamic connection core-matrix gradient values and FA values systematically varied across the S-A axis (group-based in PNC and HCPD). These analyses were conducted in [/results/tract_anatomy/thalamocortical_connection_anatomy.Rmd](https://github.com/PennLINC/thalamocortical_development/blob/main/results/tract_anatomy/thalamocortical_connection_anatomy.Rmd); a knit version of thalamocortical_connection_anatomy.html can be viewed [here](https://htmlpreview.github.io/?https://github.com/PennLINC/thalamocortical_development/blob/main/results/tract_anatomy/thalamocortical_connection_anatomy.html). 
 * The total surface area and average sulcal depth of all glasser parcels was computed based on the fsaverage surface in [/results/tract_anatomy/parcel_anatomy/glasser_parcel_anatomy.sh](https://github.com/PennLINC/thalamocortical_development/blob/main/results/tract_anatomy/parcel_anatomy/glasser_parcel_anatomy.sh) and [/results/tract_anatomy/parcel_anatomy/glasser_parcel_anatomy.py](https://github.com/PennLINC/thalamocortical_development/blob/main/results/tract_anatomy/parcel_anatomy/glasser_parcel_anatomy.py). 
 
 ### Thalamocortical Connectivity: Hierarchical Development along the Sensorimotor-Association Axis
-Analyses were undertaken to characterize thalamocortical connection maturational patterns and to investigate whether thalamocortical connectivity development aligns with hierarchical axes of cortical developmental heterochronicity and plasticity marker maturation. Generalized additive models were used to delineate developmental trajectories, quantify age-related change, and identify the age of thalamocortical connectivity maturation. GAM analyses utilized the functions in [/gam_functions/GAM_functions_thalamocortical.R](https://github.com/PennLINC/thalamocortical_development/blob/main/gam_functions/GAM_functions_thalamocortical.R), including:
+Analyses were undertaken in PNC and HCPD to characterize normative thalamocortical connection maturational patterns and to investigate whether thalamocortical connectivity development aligns with hierarchical axes of cortical developmental plasticity. Generalized additive models were used to delineate developmental trajectories, quantify age-related change, and identify the age of thalamocortical connectivity maturation. GAM analyses utilized the functions in [/gam_functions/GAM_functions_thalamocortical.R](https://github.com/PennLINC/thalamocortical_development/blob/main/gam_functions/GAM_functions_thalamocortical.R), including:
 * gam.fit.smooth: A function to fit a GAM (measure ~ s(smooth_var, k = knots, fx = set_fx) + covariates)) and save out statistics (F-value, partial R squared, p-value) and derivative-based characteristics (e.g., age window of significant increase, age of peak change)
 * gam.smooth.predict: A function to predict fitted values of your dependent variable based on a GAM model and a prediction data frame using gratia::fitted_values
 * gam.estimate.smooth: A function to estimate zero-averaged gam smooth functions using gratia::smooth_estimates
-* gam.derivatives: A function to compute derivatives for the smooth term from a main GAM model and for individual draws from the simulated posterior distribution; can return true model derivatives or posterior derivatives 
+* gam.derivatives: A function to compute derivatives for the smooth term from a main GAM model and for individual draws from the simulated posterior distribution; can return true model derivatives or posterior derivatives
+* gam.factorsmooth.interaction: A function to fit a GAM with a factor-smooth interaction and obtain statistics for the interaction term  
 
 These functions were implemented with dataset-specific thalamocortical connectivity metrics and demographics data for GAM-based analyses in [/gam_functions/fit_ageGams.R](https://github.com/PennLINC/thalamocortical_development/blob/main/gam_functions/fit_ageGams.R). In general, this code applies the above functions to fit age GAMs for each thalamocortical connection of interest and saves out the results.
 
-After fitting developmental models, the potential contribution of thalamocortical connectivity maturation to hierarchical development along the cortex's S-A axis was investigated in [/results/developmental_effects/thalamocortical_connectivity_development.Rmd](https://github.com/PennLINC/thalamocortical_development/blob/main/results/developmental_effects/thalamocortical_connectivity_development.Rmd), which can be viewed [here](https://htmlpreview.github.io/?https://github.com/PennLINC/thalamocortical_development/blob/main/results/developmental_effects/thalamocortical_connectivity_development.html). This investigation included quantifying the similarity of developmental effects across datasets (PNC and HCPD), visualizing cortex-wide and region-specific thalamic connectivity developmental profiles and derivative heterochronicity, ascribing functions to cortical regions with early and late maturing thalamic connections, testing how maturational timing varied across the S-A axis (and anatomical axes), and examining how thalamocortical connection maturation relates to the development of non-invasive readouts of plasticity, including development of fMRI-derived E:I ratio, T1/T2 ratio-indexed myelin growth, and fMRI-proxied intrinsic fluctuation amplitude.  
+After fitting developmental models, the potential contribution of thalamocortical connectivity maturation to hierarchical development along the cortex's S-A axis was investigated in [/results/developmental_effects/thalamocortical_connectivity_development.Rmd](https://github.com/PennLINC/thalamocortical_development/blob/main/results/developmental_effects/thalamocortical_connectivity_development.Rmd), which can be viewed [here](https://htmlpreview.github.io/?https://github.com/PennLINC/thalamocortical_development/blob/main/results/developmental_effects/thalamocortical_connectivity_development.html). This investigation included quantifying the similarity of developmental effects across datasets (PNC and HCPD), visualizing cortex-wide and region-specific thalamic connectivity developmental profiles and derivative heterochronicity, ascribing psychological functions to cortical regions with early and late maturing thalamic connections, testing how maturational timing varied across the S-A axis (and anatomical axes), and examining how thalamocortical connection maturation relates to the development of non-invasive readouts of plasticity, including development of fMRI-derived E:I ratio, T1/T2 ratio-indexed myelin growth, and fMRI-proxied intrinsic fluctuation amplitude.  
 
 ### Thalamocortical Connectivity: Relationships with Neighborhood and Household Socioeconomic Conditions
-GAMs were employed to explore associations between thalamocortical connection properties and youths' household-level and neighborhood-level socioeconomic conditions (while controlling for age). Models were fit in [/gam_functions/fit_envGams.R](https://github.com/PennLINC/thalamocortical_development/blob/main/gam_functions/fit_envGams.R). Household-level SES was proxied by parental education; neighborhood-level SES was determined based on a factor analysis of geocoded neighborhood environment indicators (e.g., median family income, percent employed, population density, percent in poverty). Environment GAMs used additional functions from [/gam_functions/GAM_functions_thalamocortical.R], including:
+GAMs were employed to explore associations between thalamocortical connection properties and youths' household-level and neighborhood-level socioeconomic conditions (while controlling for developmental effects). Models were fit in [/gam_functions/fit_envGams.R](https://github.com/PennLINC/thalamocortical_development/blob/main/gam_functions/fit_envGams.R). Household-level SES was proxied by caregiver education and income-to-needs ratios. Neighborhood-level SES was determined based on a factor analysis of geocoded neighborhood environment indicators (e.g., median family income, percent employed, population density, percent in poverty). Environment GAMs used additional functions from [/gam_functions/GAM_functions_thalamocortical.R], including:
 * gam.fit.covariate: A function to fit a GAM (measure ~ s(smooth_var, k = knots, fx = set_fx) + covariates)) and save out statistics for the covariate of interest
 * gam.smooth.predict.covariateinteraction: A function to predict fitted values of a measure for a given value of a covariate, using a varying coefficients smooth-by-linear covariate interaction 
 
 Significant associations between environmental conditions and thalamocortical connectivity properties were identified and spatial variability in their cortical embedding along S-A and anatomical axes was classified in [/results/environment_effects
 /thalamocortical_connectivity_environment.Rmd](https://github.com/PennLINC/thalamocortical_development/blob/main/results/environment_effects/thalamocortical_connectivity_environment.Rmd), which can be viewed [here](https://htmlpreview.github.io/?https://github.com/PennLINC/thalamocortical_development/blob/main/results/environment_effects/thalamocortical_connectivity_environment.html).
  
+### Thalamocortical Connectivity: Replication of Developmental and Environmental Effects in a Clinical Sample of Youth with Psychopathology
+After obtaining the core set of findings in PNC and HCPD, we evaluated the generalizability of results to the HBN, a sample of youth with clinically-significant youth psychopathology. Developmental GAMs for the HBN were fit in [/gam_functions/fit_ageGams_HBN.R](https://github.com/PennLINC/thalamocortical_development/blob/main/gam_functions/fit_ageGams_HBN.R) and environmental gams were run in [/gam_functions/fit_envGams_HBN.R](https://github.com/PennLINC/thalamocortical_development/blob/main/gam_functions/fit_envGams_HBN.R). 
+
+Code investigating alignment of developmental and environmental effects to the S-A axis in the HBN is in [/results/HBN_replication/thalamocortical_connectivity_HBNreplication.Rmd](https://github.com/PennLINC/thalamocortical_development/blob/main/results/HBN_replication/thalamocortical_connectivity_HBNreplication.Rmd), which can be viewed as an html [here](https://htmlpreview.github.io/?https://github.com/PennLINC/thalamocortical_development/blob/main/results/HBN_replication/thalamocortical_connectivity_HBNreplication.html)! 
 
 # PROJECT SOFTWARE
 
@@ -196,4 +204,6 @@ The following external software was used in this project:
 * connectome workbench v.1.5.0, downloaded from [humanconnectome.org](https://www.humanconnectome.org/software/get-connectome-workbench#download) into /software/workbench
 * rotate_parcellation algorithm for parcel-based spin testing, cloned from the [rotate_parcellation github](https://github.com/frantisekvasa/rotate_parcellation/tree/master) into /software/rotate_parcellation
 * freesurfer version 6.0.0 (freesurfer-Darwin-OSX-stable-pub-v6.0.0-2beb96c), downloadable from [freesurfer's older releases archives](https://surfer.nmr.mgh.harvard.edu/pub/dist/freesurfer/6.0.0/)
-* R version 4.2.3; packages: dplyr, plyr, tidyr, tidyverse, purrr, mgcv, gratia, ggplot2, ggseg, ggsegGlasser, ggnewscale, scales, cifti, PupillometryR, car, rstatix, Hmisc, matrixStats, cocor, reshape2, EnvStats, neuroCombat 
+* R version 4.2.3; packages: dplyr, plyr, tidyr, tidyverse, purrr, tibble, mgcv, gratia, ggplot2, ggseg, ggsegGlasser, ggnewscale, scales, cifti, PupillometryR, car, rstatix, Hmisc, matrixStats, cocor, reshape2, EnvStats, neuroCombat, datawizard
+
+And Fin :) 
