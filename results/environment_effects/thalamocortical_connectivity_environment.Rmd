@@ -166,10 +166,10 @@ sig.effects(df = householdSES_maineffects_envSEScontrolled_FA_glasser_pnc, env.m
 sig.effects(df = householdSES_maineffects_linear_FA_glasser_hcpd, env.measure = "household environment (average parental years of education)")
 ```
 
-**Significant household-level environment effects (maternal education, categorical)**
+**Significant household-level environment effects (state-adjusted income-to-needs)**
 
 ```{r}
-sig.effects(df = householdSES_maineffects_ordinal_FA_glasser_hcpd, env.measure = "household environment (maternal education, categorical)")
+sig.effects(df = INRstate_maineffects_FA_glasser_hcpd, env.measure = "household environment (INR)")
 ```
 
 # Thalamocortical Developmental Trajectories Stratified by Neighborhood Environment Factor Score
