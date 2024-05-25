@@ -136,6 +136,37 @@ run_gam.derivatives(dwi.measure = "FA", dwi.atlas = "glasser", dwi.dataset = "hc
 run_gam.derivatives(dwi.measure = "MD", dwi.atlas = "glasser", dwi.dataset = "hcpd", smooth.var = "age", covs = "sex + mean_fd", k = 3, fixed_edf = TRUE, num.draws = 1, num.pred = 200, credible.interval = FALSE)
 
 ############################################################################################################
+#### Region-wise Age by Sex Interactions ####
+
+FA.glasser.pnc$sex.ordered <- ordered(FA.glasser.pnc$sex, levels = c(1,2))
+MD.glasser.pnc$sex.ordered <- ordered(MD.glasser.pnc$sex, levels = c(1,2))
+
+FA.glasser.hcpd$sex.ordered <- ordered(FA.glasser.hcpd$sex, levels = c("F","M"))
+MD.glasser.hcpd$sex.ordered <- ordered(MD.glasser.hcpd$sex, levels = c("F","M"))
+
+run_gam.fit.interaction <- function(dwi.measure, dwi.atlas, dwi.dataset, smooth.var, int.var, covs, k, fixed_edf){
+  if(dwi.dataset == "hcpd"){
+    tractlist <- tractlist.hcpd
+  }
+  if(dwi.dataset == "pnc"){
+    tractlist <- tractlist.pnc
+  }
+  agebysex.interactioneffects <- map_dfr(tractlist$tract, 
+                                    function(x){as.data.frame(gam.factorsmooth.interaction(measure = dwi.measure, atlas = dwi.atlas, dataset = dwi.dataset, 
+                                                                             region = as.character(x), smooth_var = smooth.var, int_var = int.var, covariates = covs, 
+                                                                             knots = k, set_fx = fixed_edf))}) 
+  write.csv(agebysex.interactioneffects, sprintf("/cbica/projects/thalamocortical_development/thalamocortical_results/development_results/development_sexeffects_%s_%s_%s.csv", dwi.measure, dwi.atlas, dwi.dataset), quote = F, row.names =F)
+}
+
+#PNC
+run_gam.fit.interaction(dwi.measure = "FA", dwi.atlas = "glasser", dwi.dataset = "pnc", smooth.var = "age", int.var = "sex.ordered", covs = "sex.ordered + mean_fd", k = 3, fixed_edf = TRUE)
+run_gam.fit.interaction(dwi.measure = "MD", dwi.atlas = "glasser", dwi.dataset = "pnc", smooth.var = "age", int.var = "sex.ordered", covs = "sex.ordered + mean_fd", k = 3, fixed_edf = TRUE)
+
+#HCPD
+run_gam.fit.interaction(dwi.measure = "FA", dwi.atlas = "glasser", dwi.dataset = "hcpd", smooth.var = "age", int.var = "sex.ordered", covs = "sex.ordered + mean_fd", k = 3, fixed_edf = TRUE)
+run_gam.fit.interaction(dwi.measure = "MD", dwi.atlas = "glasser", dwi.dataset = "hcpd", smooth.var = "age", int.var = "sex.ordered", covs = "sex.ordered + mean_fd", k = 3, fixed_edf = TRUE)
+
+############################################################################################################
 #### Region-wise Posterior Smooth Derivatives Correlation with Sensorimotor-Association Axis ####
 
 run_gam.derivatives.SAaxis <- function(dwi.measure, dwi.atlas, dwi.dataset, smooth.var, covs, k, fixed_edf, num.draws, num.pred, credible.interval){
