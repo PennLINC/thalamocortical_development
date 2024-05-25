@@ -2,6 +2,7 @@
 library(dplyr)
 library(tidyverse)
 library(cifti)
+library(datawizard)
 source("/cbica/projects/thalamocortical_development/code/thalamocortical_development/gam_functions/GAM_functions_thalamocortical.R")
 
 ############################################################################################################
@@ -63,11 +64,27 @@ household.environment.years$parental.education.years <- household.environment.ye
 household.environment.hcpd <- merge(household.environment.categorical, household.environment.years, by = "rbcid", sort = F)
 FA.glasser.hcpd <- merge(FA.glasser.hcpd, household.environment.hcpd, by = "rbcid", sort = F)
 
+## household income-to-needs (national and state-adjusted)
+household.INR.hcpd <- read.csv("/cbica/projects/thalamocortical_development/sample_info/HCPD/HCPD_INR.csv") %>% select(id, NEW_INCOME, INR_NATIONAL_PLINE, INR_STATE_RLINE)
+names(household.INR.hcpd)[1] <- "rbcid"
+household.INR.hcpd$rbcid <- gsub("HCD", "sub-", household.INR.hcpd$rbcid)
+household.INR.hcpd <- household.INR.hcpd[household.INR.hcpd$rbcid %in% FA.glasser.hcpd$rbcid,]
+
+household.INR.hcpd <- household.INR.hcpd %>% filter(NEW_INCOME != "999999" & NEW_INCOME != "9999999" & NEW_INCOME != "99999999" & NEW_INCOME != "9999999999" & !is.na(INR_NATIONAL_PLINE) & !is.na(INR_STATE_RLINE)) #exclude repeating-9 and NA entries, which indicate missing data (n = 23)
+household.INR.hcpd <- household.INR.hcpd %>% filter(NEW_INCOME > 500 & NEW_INCOME != "1e+13") #exclude extreme (and likely erroneously reported) family income values (e.g., "80" for the year or ten trillion for the year) (n = 4)
+household.INR.hcpd$INR_NATIONAL_PLINE <- winsorize(data = household.INR.hcpd$INR_NATIONAL_PLINE, threshold = 0.01, method = "percentile") #winzorize
+household.INR.hcpd$INR_NATIONAL_PLINE <- log(household.INR.hcpd$INR_NATIONAL_PLINE) #take the natural log
+household.INR.hcpd$INR_STATE_RLINE <- winsorize(data = household.INR.hcpd$INR_STATE_RLINE, threshold = 0.01, method = "percentile") #winzorize
+household.INR.hcpd$INR_STATE_RLINE <- log(household.INR.hcpd$INR_STATE_RLINE) #take the natural log
+
+FA.glasser.hcpd <- left_join(FA.glasser.hcpd, household.INR.hcpd, by = "rbcid")
 
 ############################################################################################################
 ####  PNC Analysis: Neighborhood (envSES) and Household (parental education years) Environment ####
-
+############################################################################################################
 #### Neighborhood Environment Effects: PNC
+
+cor.test(FA.glasser.pnc$envSES, FA.glasser.pnc$mean_fd, method = c("spearman")) #rho = 0.03776212, p-value = 0.2017
 
 ### Main Effects (envSES, Linear Covariate)
 neighborhoodenv.maineffects.pnc <- map_dfr(tractlist.pnc$tract, 
@@ -128,7 +145,7 @@ write.csv(householdenv.maineffects.envSEScontrol.pnc, "/cbica/projects/thalamoco
 
 
 ############################################################################################################
-      #HCPD Analysis: Household (parental education categorical and continuous) Environment
+      #HCPD Analysis: Household (parental education and INR) Environment
 ############################################################################################################
 #### Household Environment Effects: HCPD ####
 
@@ -140,33 +157,19 @@ householdenv.maineffects.linear.hcpd <- map_dfr(tractlist.hcpd$tract,
                                                                                     knots = 3, set_fx = TRUE))}) %>% select(tract, GAM.cov.tvalue, GAM.cov.pvalue) 
 write.csv(householdenv.maineffects.linear.hcpd, "/cbica/projects/thalamocortical_development/thalamocortical_results/environment_results/householdSES_maineffects_linear_FA_glasser_hcpd.csv", quote = F, row.names =F)
 
-### Main Effects (Maternal Education, Ordinal Factor)
-gam.fit.ordinalcovariate <- function(measure, atlas, dataset, region, smooth_var, covariate.interest, covariates.noninterest, knots, set_fx = FALSE){
-  
-  ##Fit the gam
-  dataname <- sprintf("%s.%s.%s", measure, atlas, dataset) 
-  gam.data <- get(dataname)
-  parcel <- region
-  region <- str_replace(region, "-", ".")
-  modelformula <- as.formula(sprintf("%s ~ s(%s, k = %s, fx = %s) + %s + %s", region, smooth_var, knots, set_fx, covariate.interest, covariates.noninterest))
-  gam.model <- gam(modelformula, method = "REML", data=gam.data)
-  gam.results <- summary(gam.model)
-  
-  ##Linear ordinal factor effects
-  gam.cov.linear.tvalue <- gam.results$p.table[2,3] 
-  gam.cov.linear.pvalue <- gam.results$p.table[2,4] 
+### Main Effects (State-Adjusted Income to Needs Ratio)
+FA.glasser.hcpd <- FA.glasser.hcpd %>% drop_na(INR_STATE_RLINE)
 
-  results <- data.frame(tract = region, GAM.cov.tvalue = gam.cov.linear.tvalue, GAM.cov.pvalue = gam.cov.linear.pvalue)
-  return(results)
-}
-
-FA.glasser.hcpd <- FA.glasser.hcpd %>% drop_na(maternal_education_categorical) #remove 9 participants missing maternal education data 
-
-householdenv.maineffects.ordinal.hcpd <- map_dfr(tractlist.hcpd$tract, 
-                                                function(x){as.data.frame(gam.fit.ordinalcovariate(measure = "FA", atlas = "glasser", dataset = "hcpd", 
+INRstate.maineffects.linear.hcpd <- map_dfr(tractlist.hcpd$tract, 
+                                                function(x){as.data.frame(gam.fit.covariate(measure = "FA", atlas = "glasser", dataset = "hcpd", 
                                                                                             region = as.character(x), smooth_var = "age", 
-                                                                                            covariate.interest = "maternal_education_categorical" , covariates.noninterest = "sex + mean_fd",
+                                                                                            covariate.interest = "INR_STATE_RLINE" , covariates.noninterest = "sex + mean_fd",
                                                                                             knots = 3, set_fx = TRUE))}) %>% select(tract, GAM.cov.tvalue, GAM.cov.pvalue) 
-write.csv(householdenv.maineffects.ordinal.hcpd, "/cbica/projects/thalamocortical_development/thalamocortical_results/environment_results/householdSES_maineffects_ordinal_FA_glasser_hcpd.csv", quote = F, row.names =F)
+write.csv(INRstate.maineffects.linear.hcpd, "/cbica/projects/thalamocortical_development/thalamocortical_results/environment_results/INRstate_maineffects_FA_glasser_hcpd.csv", quote = F, row.names =F)
 
-
+INRnat.maineffects.linear.hcpd <- map_dfr(tractlist.hcpd$tract, 
+                                            function(x){as.data.frame(gam.fit.covariate(measure = "FA", atlas = "glasser", dataset = "hcpd", 
+                                                                                        region = as.character(x), smooth_var = "age", 
+                                                                                        covariate.interest = "INR_NATIONAL_PLINE" , covariates.noninterest = "sex + mean_fd",
+                                                                                        knots = 3, set_fx = TRUE))}) %>% select(tract, GAM.cov.tvalue, GAM.cov.pvalue) 
+write.csv(INRnat.maineffects.linear.hcpd, "/cbica/projects/thalamocortical_development/thalamocortical_results/environment_results/INRnat_maineffects_FA_glasser_hcpd.csv", quote = F, row.names =F)
