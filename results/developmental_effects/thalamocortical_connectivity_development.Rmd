@@ -965,12 +965,17 @@ plasticity.dev <- left_join(spin.parcels, plasticity.dev, by = "orig_parcelname"
 Fluctuation amplitude decrease onset map 
 
 ```{r}
-ggplot() + 
-  geom_brain(data = plasticity.dev, atlas = glasser, mapping = aes(fill = amplitude.agedecline, colour=I("black"), size=I(.03))) +  
-  theme_void()  + 
-  scale_fill_gradientn(colors = c("#fcd16d", "#EA8B57","#943b90", "#581768"), limits = c(7.9, 18), oob = squish, na.value = "white") 
+plasticity.dev$agedecline.protracted <- plasticity.dev$amplitude.agedecline
+plasticity.dev$agedecline.protracted[plasticity.dev$agedecline.protracted == "NaN"] <- 23 #lets plot regions with most protracted functional expression of plasticity (amplitude never declines!)
+snr.exclude <- read.csv("/cbica/projects/thalamocortical_development/Maps/parcellations/surface/SNRmask_glasser360.csv") %>% filter(SNR.mask == 0) #but not those we excluded for low SNR
+plasticity.dev$agedecline.protracted[plasticity.dev$label %in% snr.exclude$label] <- NA
 
-ggsave(filename = "/cbica/projects/thalamocortical_development/figures/images/Figure6/Boldamplitude_agedecline_corticalmap.pdf", device = "pdf", dpi = 500, width = 4.75, height = 5.4) 
+ggplot() + 
+  geom_brain(data = plasticity.dev, atlas = glasser, mapping = aes(fill = agedecline.protracted, colour=I("black"), size=I(.03))) +  
+  theme_void()  + 
+  scale_fill_gradientn(colors = c(alpha("#323280", 0.2), alpha("#323280", 0.4), alpha("#323280", 0.6), alpha("#323280", 0.9), alpha("#323280", 1)), limits = c(10, 17), oob = squish, na.value = "white") 
+
+ggsave(filename = "/cbica/projects/thalamocortical_development/figures/images/Figure6/Boldamplitude_agedecline_corticalmap.pdf", device = "pdf", dpi = 500, width = 5.7, height = 5.4) 
 ```
 
 T1/T2 annualized rate of increase map
@@ -979,9 +984,9 @@ T1/T2 annualized rate of increase map
 ggplot() + 
   geom_brain(data = plasticity.dev, atlas = glasser, mapping = aes(fill = myelin.annualroc, colour=I("black"), size=I(.03))) +  
   theme_void()  + 
-  scale_fill_gradientn(colors = c( "#581768", "#943b90", "#EA8B57", "#fcd16d"), limits = c(0.005, 0.018), oob = squish, na.value = "white") 
+  scale_fill_gradientn(colors = c(alpha("#323280", 1), alpha("#323280", 0.8), alpha("#323280", 0.6), alpha("#323280", 0.4), alpha("#323280", 0.2)), limits = c(0.012, 0.016), oob = squish, na.value = "white") 
 
-ggsave(filename = "/cbica/projects/thalamocortical_development/figures/images/Figure6/T1T2ratio_annualizedroc_corticalmap.pdf", device = "pdf", dpi = 500, width = 4.44, height = 5.13) 
+ggsave(filename = "/cbica/projects/thalamocortical_development/figures/images/Figure6/T1T2ratio_annualizedroc_corticalmap.pdf", device = "pdf", dpi = 500, width = 5.4, height = 5.13) 
 ```
 
 E:I ratio magnitude of developmental decline map
@@ -990,9 +995,9 @@ E:I ratio magnitude of developmental decline map
 ggplot() + 
   geom_brain(data = plasticity.dev, atlas = glasser, mapping = aes(fill = EI.ageslope, colour=I("black"), size=I(.03))) +  
   theme_void()  + 
-  scale_fill_gradientn(colors = c("#fcd16d", "#EA8B57","#943b90", "#581768"), limits = c(-0.04, -0.0345), oob = squish, na.value = "white") 
+  scale_fill_gradientn(colors = c(alpha("#323280", 0.2), alpha("#323280", 0.4), alpha("#323280", 0.6), alpha("#323280", 0.9), alpha("#323280", 1)), limits = c(-0.04, -0.035), oob = squish, na.value = "white") 
 
-ggsave(filename = "/cbica/projects/thalamocortical_development/figures/images/Figure6/EIratio_decline_corticalmap.pdf", device = "pdf", dpi = 500, width = 4.13, height = 5.08) 
+ggsave(filename = "/cbica/projects/thalamocortical_development/figures/images/Figure6/EIratio_decline_corticalmap.pdf", device = "pdf", dpi = 500, width = 5, height = 5.08) 
 ```
 
 ## Thalamocortical maturational patterns align to the spatiotemporal unfolding of plasticity readouts
@@ -1021,7 +1026,7 @@ EI.thalamus.pnc <- perm.sphere.p(x = plasticity.dev.pnc$smooth.increase.offset, 
 
 ```{r, warning = F, message = F}
 ggplot(plasticity.dev.pnc, aes(x = EI.ageslope, y = smooth.increase.offset)) +
-  geom_point(size = 0.5, color = "#fcd16d") +
+  geom_point(size = 0.5, color = "#A2A2C8") +
   geom_smooth(method = "lm", color = c("black"), formula = y ~ x, linewidth = 0.2) + 
   scale_y_continuous(limits = c(12, 23), breaks = c(12, 14, 16, 18, 20, 22)) +
   theme_classic() +
@@ -1055,7 +1060,7 @@ myelin.thalamus.pnc <- perm.sphere.p(x = plasticity.dev.pnc$smooth.increase.offs
 
 ```{r, warning = F, message = F}
 ggplot(plasticity.dev.pnc, aes(x = myelin.annualroc, y = smooth.increase.offset, color = myelin.annualroc)) +
-  geom_point(size = 0.5, color = "#F1A45F") +
+  geom_point(size = 0.5, color = "#A2A2C8") +
   geom_smooth(method = "lm", color = c("black"), formula = y ~ x, linewidth = 0.2) + 
   scale_x_continuous(limits = c(0.005, 0.025)) +
   scale_y_continuous(limits = c(12, 23), breaks = c(12, 14, 16, 18, 20, 22)) +
@@ -1091,7 +1096,7 @@ amplitude.thalamus.pnc <- perm.sphere.p(x = plasticity.dev.pnc$smooth.increase.o
 
 ```{r, warning=F, message=F}
 ggplot(plasticity.dev.pnc, aes(x = amplitude.agedecline, y = smooth.increase.offset, color = amplitude.agedecline)) +
-  geom_point(size = 0.5, color = "#7B2C80") +
+  geom_point(size = 0.5, color = "#A2A2C8") +
   geom_smooth(method = "lm", color = c("black"), formula = y ~ x, linewidth = 0.2) + 
   scale_x_continuous(limits = c(10, 21.2), breaks = c(8, 10, 12, 14, 16, 18, 20)) +
   scale_y_continuous(limits = c(12, 23), breaks = c(12, 14, 16, 18, 20, 22)) +
@@ -1144,7 +1149,7 @@ EI.thalamus.hcpd <- perm.sphere.p(x = plasticity.dev.hcpd$smooth.increase.offset
 
 ```{r, warning = F, message = F}
 ggplot(plasticity.dev.hcpd, aes(x = EI.ageslope, y = smooth.increase.offset, color = EI.ageslope)) +
-  geom_point(size = 0.5, color = "#fcd16d") +
+  geom_point(size = 0.5, color = "#A2A2C8") +
   geom_smooth(method = "lm", color = c("black"), formula = y ~ x, linewidth = 0.2) + 
   scale_y_continuous(limits = c(12, 23), breaks = c(12, 14, 16, 18, 20, 22)) +
   theme_classic() +
@@ -1178,7 +1183,7 @@ myelin.thalamus.hcpd <- perm.sphere.p(x = plasticity.dev.hcpd$smooth.increase.of
 
 ```{r, warning = F, message = F}
 ggplot(plasticity.dev.hcpd, aes(x = myelin.annualroc, y = smooth.increase.offset, color = myelin.annualroc)) +
-  geom_point(size = 0.5, color = "#F1A45F") +
+  geom_point(size = 0.5, color = "#A2A2C8") +
   geom_smooth(method = "lm", color = c("black"), formula = y ~ x, linewidth = 0.2) + 
   scale_x_continuous(limits = c(0.005, 0.025)) +
   scale_y_continuous(limits = c(12, 23), breaks = c(12, 14, 16, 18, 20, 22)) +
@@ -1214,7 +1219,7 @@ amplitude.thalamus.hcpd <- perm.sphere.p(x = plasticity.dev.hcpd$smooth.increase
 
 ```{r, warning=F, message=F}
 ggplot(plasticity.dev.hcpd, aes(x = amplitude.agedecline, y = smooth.increase.offset, color = amplitude.agedecline)) +
-  geom_point(size = 0.5, color = "#7B2C80") +
+  geom_point(size = 0.5, color = "#A2A2C8") +
   geom_smooth(method = "lm", color = c("black"), formula = y ~ x, linewidth = 0.2) + 
   scale_x_continuous(limits = c(10, 21.2), breaks = c(8, 10, 12, 14, 16, 18, 20)) +
   scale_y_continuous(limits = c(12, 23), breaks = c(12, 14, 16, 18, 20, 22)) +
