@@ -684,7 +684,7 @@ cor.test(gameffects_FA_glasser_pnc$SA.axis, gameffects_FA_glasser_pnc$smooth.inc
 
 ```{r}
 spin.data <- left_join(spin.parcels, gameffects_FA_glasser_pnc, by = c("label", "orig_parcelname", "tract")) 
-perm.sphere.p(x = spin.data$SA.axis, y = spin.data$smooth.increase.offset, perm.id = perm.id.full, corr.type = "spearman") 
+perm.sphere.p(x = spin.data$SA.axis, y = spin.data$smooth.increase.offset, perm.id = perm.id.full, corr.type = "spearman") #fdr-correct this for axis-based analyses below
 ```
 
 *Correlation plot*
@@ -766,7 +766,7 @@ cor.test(gameffects_FA_glasser_hcpd$SA.axis, gameffects_FA_glasser_hcpd$smooth.i
 
 ```{r}
 spin.data <- left_join(spin.parcels, gameffects_FA_glasser_hcpd, by = c("label", "orig_parcelname", "tract")) 
-perm.sphere.p(x = spin.data$SA.axis, y = spin.data$smooth.increase.offset, perm.id = perm.id.full, corr.type = "spearman") 
+perm.sphere.p(x = spin.data$SA.axis, y = spin.data$smooth.increase.offset, perm.id = perm.id.full, corr.type = "spearman") #fdr-correct this for axis-based analyses below
 ```
 
 *Correlation plot*
@@ -793,13 +793,24 @@ ggsave(filename = "/cbica/projects/thalamocortical_development/figures/images/Fi
 ## Thalamocortical maturation along anatomical axes
 
 ```{r}
-#Glasser parcel x,y,z coordinates
+#Glasser parcel x,y,z coordinates for defining A-P, M-L, and D-V axes
 load(file = "/cbica/projects/thalamocortical_development/Maps/parcellations/surface/hcp_mmp1.0.rda") #RDA file from the brainGraph package https://github.com/cwatson/brainGraph/blob/master/data/hcp_mmp1.0.rda with glasser region x, y, and z MNI coordinates. regions are in lh --> rh order
 hcp_mmp1.0$x.mni[1:180]  <- hcp_mmp1.0$x.mni[1:180]*-1 #convert R-> L hemisphere coords into medial lateral coords
 hcp_mmp1.0$label <- NA
 hcp_mmp1.0$label[1:180] <- glasser.regions$label[181:360]
 hcp_mmp1.0$label[181:360] <- glasser.regions$label[1:180]
 hcp_mmp1.0 <- hcp_mmp1.0 %>% select(-hemi)
+```
+
+```{r}
+#C-Mt files for defining the group-level core-matrix gradient
+CPt.glasser.pnc <- read.csv("/cbica/projects/thalamocortical_development/thalamocortical_structuralconnectivity/individual/PNC/PNC_tractaverage_CPt_primary.csv") %>% select("tract", "label", "orig_parcelname", "mean_CPt")
+CPt.glasser.hcpd <- read.csv("/cbica/projects/thalamocortical_development/thalamocortical_structuralconnectivity/individual/HCPD/HCPD_tractaverage_CPt_primary.csv")  %>% select("tract", "label", "orig_parcelname", "mean_CPt")
+CPt.gradient <- merge(CPt.glasser.pnc, CPt.glasser.hcpd, by = c("label", "tract", "orig_parcelname"), all.x = TRUE, all.y = TRUE, suffixes = c("_pnc", "_hcpd"))
+CPt.gradient$CPt <- CPt.gradient %>% select(mean_CPt_pnc, mean_CPt_hcpd) %>% rowMeans(na.rm = T)
+CPt.gradient <- CPt.gradient %>% select(CPt, label)
+
+hcp_mmp1.0 <- left_join(hcp_mmp1.0, CPt.gradient, by = "label")
 ```
 
 ```{r}
@@ -853,21 +864,42 @@ compute_axis_correlation(df.dev = gameffects_FA_glasser_pnc, dev.metric = "smoot
 compute_axis_correlation(df.dev = gameffects_FA_glasser_pnc, dev.metric = "smooth.increase.offset", axis = "z.mni")
 ```
 
+*Core-matrix gradient*
+
+```{r}
+compute_axis_correlation(df.dev = gameffects_FA_glasser_pnc, dev.metric = "smooth.increase.offset", axis = "CPt")
+```
+
+Correct axis correlation ps 
+
+```{r}
+axis.cor.ps <- c(0.00075, 0.0621, 0.43765, 0.26005, 0.0287) #S-A, A-P, M-L, D-V, C-M
+p.adjust(axis.cor.ps, method = c("fdr"))
+```
+
+Correct correlation comparison ps
+
+```{r}
+cocor.ps <- c(0.0001552829, 3.832011e-08, 0.0002034701, 0.0006272672)
+p.adjust(cocor.ps, method = c("fdr"))
+```
+
 ```{r}
 #Put above results into df for plotting
 axis.results <- data.frame(Axis = factor(), corr = double())
 axis.results <- axis.results %>% add_row(Axis = "S-A", corr = 0.4877183)
 axis.results <- axis.results %>% add_row(Axis = "A-P", corr = 0.3101209)
+axis.results <- axis.results %>% add_row(Axis = "C-M", corr = .2897652)
 axis.results <- axis.results %>% add_row(Axis = "D-V", corr = 0.1173292)
 axis.results <- axis.results %>% add_row(Axis = "M-L", corr = 0.03024772)
-axis.results$Axis <- factor(axis.results$Axis, ordered = TRUE, levels = c("S-A", "A-P", "D-V", "M-L"))
+axis.results$Axis <- factor(axis.results$Axis, ordered = TRUE, levels = c("S-A", "A-P", "C-M", "D-V", "M-L"))
 
 ggplot(axis.results, aes(x = Axis, y = corr, fill = Axis)) + 
   geom_bar(stat='identity') + 
   labs(x="") +
-  labs(y="\nAge of Maturation Correlation") +
+  labs(y="\nAxis Alignment") +
   theme_classic()+
-  scale_fill_manual(values=c(alpha("#323280", 0.5), "#672975", "#672975", "#672975")) +
+  scale_fill_manual(values=c(alpha("#323280", 0.5), "#672975", "#672975", "#672975", "#672975")) +
   theme(
   legend.position = "none", 
   axis.text = element_text(size = 5, family = "Arial", color = c("black")),
@@ -897,6 +929,26 @@ compute_axis_correlation(df.dev = gameffects_FA_glasser_hcpd, dev.metric = "smoo
 
 ```{r}
 compute_axis_correlation(df.dev = gameffects_FA_glasser_hcpd, dev.metric = "smooth.increase.offset", axis = "z.mni")
+```
+
+*Core-matrix gradient*
+
+```{r}
+compute_axis_correlation(df.dev = gameffects_FA_glasser_hcpd, dev.metric = "smooth.increase.offset", axis = "CPt")
+```
+
+Correct axis correlation ps 
+
+```{r}
+axis.cor.ps <- c(0.00155, 0.02195, 0.3695, 0.38565, 0.0163) #S-A, A-P, M-L, D-V, C-M
+p.adjust(axis.cor.ps, method = c("fdr"))
+```
+
+Correct correlation comparison ps
+
+```{r}
+cocor.ps <- c(0.124339, 5.601018e-07, 1.390815e-05, 0.02169413)
+p.adjust(cocor.ps, method = c("fdr"))
 ```
 
 # Thalamocortical Connectivity Maturation Mirrors Timescales of Cortical Plasticity 
