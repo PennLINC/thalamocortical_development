@@ -125,12 +125,20 @@ atlas.enrichment(measure = "surface_area", enrichment_type = "smaller")
 **Sulcal depth of parcels with versus without reconstructed thalamocortical connections**
 
 ```{r}
-ggplot(glasserparcel.anatomy, aes(x = reconstructed, y = sulcal_depth)) + 
+#calculate percentage of maximal sulcal depth
+#in freesurfer, gyri have negative values and sulci have positive values as they reflect distance from a mid-surface of 0. Let's turn this into percent of maximum sulcal depth
+total_sulcalrange <- max(glasserparcel.anatomy$sulcal_depth) - min(glasserparcel.anatomy$sulcal_depth) #span of sulcal depth data
+distance_from_gyralcrown <- glasserparcel.anatomy$sulcal_depth - (min(glasserparcel.anatomy$sulcal_depth)) #relative distance from gyral crown
+glasserparcel.anatomy$percent_sulcaldepth <- (distance_from_gyralcrown/total_sulcalrange)*100 #percent of total depth
+```
+
+```{r}
+ggplot(glasserparcel.anatomy, aes(x = reconstructed, y = percent_sulcaldepth)) + 
   geom_point(aes(color = reconstructed, fill = reconstructed), position = position_jitter(width = .4), size = 0.07) + 
   geom_boxplot(aes(color = reconstructed), fill = alpha("white", 0.75), size = 0.25, outlier.shape = NA) + 
   theme_minimal() +
   scale_color_manual(values = c("#48457F", "#FCAB6A")) +
-  labs(x="\n", y="sulcal depth\n") +
+  labs(x="\n", y="Percentage sulcal depth\n") +
   theme(legend.position = "none") +
   theme(
   panel.grid.major = element_line(linewidth = 0.2),
@@ -140,14 +148,13 @@ ggplot(glasserparcel.anatomy, aes(x = reconstructed, y = sulcal_depth)) +
   axis.title.x = element_text(size = 5, family ="Arial", color = c("black")),
   axis.title.y = element_text(size = 5, family ="Arial", color = c("black")),
   axis.line = element_line(linewidth = .2), 
-  axis.ticks = element_line(linewidth = .2)) +
-  scale_y_continuous(breaks = c(-1, 0, 1))
+  axis.ticks = element_line(linewidth = .2)) 
 
 ggsave(filename = "/cbica/projects/thalamocortical_development/figures/images/Figure1/Atlasconnections_sulcaldepth.pdf", device = "pdf", dpi = 500, width = 1.3 , height = 1.2)
 ```
 
 ```{r}
-atlas.enrichment(measure = "sulcal_depth", enrichment_type = "larger")
+atlas.enrichment(measure = "percent_sulcaldepth", enrichment_type = "larger")
 ```
 
 # Thalamocortical Connectivity Cortical and Thalamic Gradients 
