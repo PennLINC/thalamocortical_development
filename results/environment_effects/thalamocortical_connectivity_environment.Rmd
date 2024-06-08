@@ -333,7 +333,7 @@ ggsave(filename = "/cbica/projects/thalamocortical_development/figures/images/Fi
 ```
 
 
-## Anatomical axis correlations
+## Specificity test: cortical and thalamic axis correlations
 
 ```{r}
 #Glasser parcel x,y,z coordinates
@@ -344,6 +344,17 @@ hcp_mmp1.0$label <- NA
 hcp_mmp1.0$label[1:180] <- glasser.regions$label[181:360]
 hcp_mmp1.0$label[181:360] <- glasser.regions$label[1:180]
 hcp_mmp1.0 <- hcp_mmp1.0 %>% select(-hemi)
+```
+
+```{r}
+#C-Mt files for defining the group-level core-matrix gradient
+CPt.glasser.pnc <- read.csv("/cbica/projects/thalamocortical_development/thalamocortical_structuralconnectivity/individual/PNC/PNC_tractaverage_CPt_primary.csv") %>% select("tract", "label", "orig_parcelname", "mean_CPt")
+CPt.glasser.hcpd <- read.csv("/cbica/projects/thalamocortical_development/thalamocortical_structuralconnectivity/individual/HCPD/HCPD_tractaverage_CPt_primary.csv")  %>% select("tract", "label", "orig_parcelname", "mean_CPt")
+CPt.gradient <- merge(CPt.glasser.pnc, CPt.glasser.hcpd, by = c("label", "tract", "orig_parcelname"), all.x = TRUE, all.y = TRUE, suffixes = c("_pnc", "_hcpd"))
+CPt.gradient$CPt <- CPt.gradient %>% select(mean_CPt_pnc, mean_CPt_hcpd) %>% rowMeans(na.rm = T)
+CPt.gradient <- CPt.gradient %>% select(CPt, label)
+
+hcp_mmp1.0 <- left_join(hcp_mmp1.0, CPt.gradient, by = "label")
 ```
 
 ```{r}
@@ -377,7 +388,7 @@ compute_axis_correlation <- function(axis){
   }
 ```
 
-Anterior-posterior axis
+*Anterior-posterior axis*
 
 ```{r, warning = F, message = F}
 ggseg(.data = hcp_mmp1.0, atlas = "glasser", mapping = aes(fill = y.mni)) + paletteer::scale_fill_paletteer_c("harrypotter::lunalovegood")
@@ -387,7 +398,7 @@ ggseg(.data = hcp_mmp1.0, atlas = "glasser", mapping = aes(fill = y.mni)) + pale
 compute_axis_correlation(axis = "y.mni")
 ```
 
-Medial-lateral axis
+*Medial-lateral axis*
 
 ```{r, warning = F, message = F}
 ggseg(.data = hcp_mmp1.0, atlas = "glasser", mapping = aes(fill = x.mni)) + paletteer::scale_fill_paletteer_c("harrypotter::lunalovegood")
@@ -397,7 +408,7 @@ ggseg(.data = hcp_mmp1.0, atlas = "glasser", mapping = aes(fill = x.mni)) + pale
 compute_axis_correlation(axis = "x.mni")
 ```
 
-Dorsal-ventral axis
+*Dorsal-ventral axis*
 
 ```{r, warning = F, message = F}
 ggseg(.data = hcp_mmp1.0, atlas = "glasser", mapping = aes(fill = z.mni)) + paletteer::scale_fill_paletteer_c("harrypotter::lunalovegood")
@@ -407,10 +418,23 @@ ggseg(.data = hcp_mmp1.0, atlas = "glasser", mapping = aes(fill = z.mni)) + pale
 compute_axis_correlation(axis = "z.mni")
 ```
 
-FDR-corrected p-values across cocor comparisons
+*Core-matrix gradient*
 
 ```{r}
-anatomical.ps <- c(0.0005890574, 0.3319559, 0.3909002)
+compute_axis_correlation(axis = "CPt")
+```
+
+Correct axis correlation ps 
+
+```{r}
+axis.cor.ps <- c(0.0056, 0.38685, 0.10335, 0.07605, 0.15965) #S-A, A-P, M-L, D-V, C-M
+p.adjust(axis.cor.ps, method = c("fdr"))
+```
+
+Correct correlation comparison ps
+
+```{r}
+anatomical.ps <- c(0.0005890574, 0.3319559, 0.3909002, 4.3867e-07) #A-P, M-L, D-V, C-M
 p.adjust(anatomical.ps, method = c("fdr"))
 ```
 
@@ -421,14 +445,16 @@ axis.results <- axis.results %>% add_row(Axis = "S-A", corr = 0.3010667)
 axis.results <- axis.results %>% add_row(Axis = "A-P", corr = 0.06846274)
 axis.results <- axis.results %>% add_row(Axis = "D-V", corr = 0.2117744)
 axis.results <- axis.results %>% add_row(Axis = "M-L", corr = 0.1841123)
-axis.results$Axis <- factor(axis.results$Axis, ordered = TRUE, levels = c("S-A", "D-V", "M-L", "A-P"))
+axis.results <- axis.results %>% add_row(Axis = "C-M", corr = -0.1265908)
+
+axis.results$Axis <- factor(axis.results$Axis, ordered = TRUE, levels = c("S-A", "D-V", "M-L", "A-P", "C-M"))
 
 ggplot(axis.results, aes(x = Axis, y = corr, fill = Axis)) + 
   geom_bar(stat='identity') + 
   labs(x="") +
   labs(y="\nEnvironment Effect Correlation") +
   theme_classic()+
-  scale_fill_manual(values=c(alpha("#323280", 0.5), "#672975", "#672975", "#672975")) +
+  scale_fill_manual(values=c(alpha("#323280", 0.5), "#672975", "#672975", "#672975", "#672975")) +
   theme(
   legend.position = "none", 
   axis.text = element_text(size = 5, family = "Arial", color = c("black")),
@@ -437,7 +463,7 @@ ggplot(axis.results, aes(x = Axis, y = corr, fill = Axis)) +
   axis.line = element_line(linewidth = .2), 
   axis.ticks = element_line(linewidth = .2))
 
-ggsave(filename = "/cbica/projects/thalamocortical_development/figures/images/Figure7/EnvEffect_anatomicalaxes_barplot.pdf", device = "pdf", dpi = 500, width = 1.55, height = 1.3)
+ggsave(filename = "/cbica/projects/thalamocortical_development/figures/images/Figure7/EnvEffect_anatomicalaxes_barplot.pdf", device = "pdf", dpi = 500, width = 1.58, height = 1.3)
 ```
 
 ## Effect magnitude enrichment testing (S-A axis quintiles)
