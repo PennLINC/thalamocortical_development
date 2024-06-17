@@ -1,6 +1,6 @@
 <br>
 <br>
-# Thalamocortical Connections Mature along a Sensorimotor-Association Axis of Cortical Developmental Heterochronicty
+# A Sensorimotor-Association Axis of Thalamocortical Connection Development
 
 ### Project Lead
 Valerie J. Sydnor
@@ -27,7 +27,7 @@ PNC, HCPD, HBN
 https://github.com/PennLINC/thalamocortical_development
 
 ### Atlas of Human Thalamocortical Connections
-The thalamocortical tractometry atlas is available [here](https://github.com/PennLINC/thalamocortical_development/tree/main/thalamocortical_autotrack_template). See below for implementation instructions 
+The thalamocortical tractometry atlas is available [here](https://github.com/PennLINC/thalamocortical_development/tree/main/results/thalamocortical_autotrack_template). See below for implementation instructions 
 
 ### Cubic Project Directory
 The project directory on cubic is: **/cbica/projects/thalamocortical_development**
