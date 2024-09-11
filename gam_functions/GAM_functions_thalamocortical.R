@@ -598,7 +598,7 @@ gam.fit.covariate <- function(measure, atlas, dataset, region, smooth_var, covar
   if(gam.cov.tvalue < 0){ #if the gam t-value for covariate of interest is less than 0, make the partialRsq negative
     partialRsq <- partialRsq*-1}
   
-  results <- data.frame(as.character(parcel), as.numeric(gam.cov.tvalue), as.numeric(gam.cov.pvalue), as.numeric(gam.cov.pvalue), as.numeric(partialRsq))
+  results <- data.frame(as.character(parcel), as.numeric(gam.cov.tvalue), as.numeric(gam.cov.pvalue), as.numeric(anova.cov.pvalue), as.numeric(partialRsq))
   colnames(results) <- c("tract", "GAM.cov.tvalue", "GAM.cov.pvalue", "ANOVA.cov.pvalue", "Effectsize.cov.partialRsq")
   return(results)
 }
