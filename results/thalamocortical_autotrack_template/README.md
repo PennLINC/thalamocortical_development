@@ -1,5 +1,5 @@
-# A DIFFUSION MRI ATLAS OF REGIONALLY-SPECIFIC THALAMOCORTICAL STRUCTURAL CONNECTIONS:
-Implementation instructions for applying the **thalamocortical tractography atlas** to new data are provided below! This tracotgraphy atlas can be used with DSI Studio to delineate anatomically-validated structural connections between the left and right thalamus and specific cortical regions defined by the HCP-MMP (Glasser) atlas. 
+# A DIFFUSION MRI ATLAS OF REGIONALLY-SPECIFIC THALAMOCORTICAL STRUCTURAL CONNECTIONS
+Implementation instructions for applying the **thalamocortical tractography atlas** to new data are provided below! This tracotgraphy atlas can be used with DSI Studio to delineate anatomically-validated structural connections between the left and right thalamus and specific cortical regions defined by the HCP-MMP parcellation [(Glasser et al., 2016)](https://www.nature.com/articles/nature18933). 
 
 ## Step 1. Install DSI Studio
 
@@ -7,11 +7,11 @@ DSI Studio can be obtained directly for Mac, Windows, and Ubuntu or installed vi
 
 * To download DSI Studio directly for Mac, Windows, or Ubuntu (no installation needed), access the download link for your operating system from the [DSI Studio releases link](https://github.com/frankyeh/DSI-Studio/releases). For proper implementation of automated tractography with the thalamocortical atlas, you must use versions 2023.12.06 "Chen" Release or 2024.05.22 "Chen" Release (2024 "Hou" Releases are in pre-release under testing by Frank Yeh).
 
-* To install DSI Studio via a Docker/singularity container, access DSI Studio's [docker hub repository](https://hub.docker.com/r/dsistudio/dsistudio), which has all DSI Studio releases under "Tags". For proper implementation of automated tractography with the thalamocortical atlas, you must use a version created on or after chen-2023-02-27. [chen-2023-02-27](https://hub.docker.com/layers/dsistudio/dsistudio/chen-2023-02-27/images/sha256-96cee3c7ea03a7a8d12d675358832c096b1921ed4a8386884a733a17d99a7aec?context=explore) is the container version used in "A sensorimotor-association axis of thalamocortical connection development". A singularity image can be created with:
+* To install DSI Studio via a Docker/singularity container, access DSI Studio's [docker hub repository](https://hub.docker.com/r/dsistudio/dsistudio), which has all DSI Studio releases under "Tags". For proper implementation of automated tractography with the thalamocortical atlas, you must use a **Chen** version created on or after chen-2023-02-27 (Hou versions are in pre-release testing). [chen-2023-02-27](https://hub.docker.com/layers/dsistudio/dsistudio/chen-2023-02-27/images/sha256-96cee3c7ea03a7a8d12d675358832c096b1921ed4a8386884a733a17d99a7aec?context=explore) is the container version used in "A sensorimotor-association axis of thalamocortical connection development". A singularity image can be created with:
 
 ```bash
 singularity dsistudio-latest.simg docker://dsistudio/dsistudio:latest #for the most recent software version
-singularity dsistudio-chen-20230227.simg dsistudio/dsistudio:chen-2023-02-27 #for the specific docker container used in this manuscript
+singularity dsistudio-chen-20230227.simg docker://dsistudio/dsistudio:chen-2023-02-27 #for the specific docker container used in this manuscript
 ```
 ## Step 2. Reconstruct your pre-processed diffusion data with GQI to create FIB files for tracking in DSI Studio
 DSI Studio uses FIB files (*fib.gz) reconstructed with [generalized q-sampling imaging](https://pubmed.ncbi.nlm.nih.gov/20304721/) (GQI) as input to tractography. GQI models the water diffusion ODF and can be applied to both shelled and non-shelled sampling schemes. FIB files store the vector field (fiber orientations) and anisotropy information (the magnitude) required for streamline tracking. FIB files can be reconstructed with dsi studio directly ([see instructions](https://dsi-studio.labsolver.org/doc/cli_t2.html)) or using QSIRecon's *dsi_studio_gqi* workflow. 
@@ -89,15 +89,17 @@ Autotrack outputs are written (by default) to the $DATA_DIR where the source .fi
 2. T_$subid.thalamus-$hemi_$corticalregion-autotrack.tt.gz, the structural connection in template space
 3. $subid.thalamus-$hemi_$HCPMMPregion-autotrack.stat.txt, a file with tract macrostructural and microstructure statistics
 
-** Note, it is highly recommended to use this thalamocortical tractography atlas with the same autotrack parameters validated here for participant-specific tracking. These parameters include `–-otsu_threshold=0.5, –-smoothing=1, -–tolerance=10, -–tip_iteration=0, -–track_voxel_ratio=4, -–check_ending=0, and -–yield_rate=0.0000001. Small modifications to these parameters may be beneficial/appropriate depending on the dataset, but should be validated via testing. Furthermore, modifying the tolerance parameter may be reasonable to delineate even stricter trajectory-based pathways (lower the tolerance threshold) or to allow for potential greater individual-specific differences in anatomy to emerge (increase the tolerance).
+** Note, it is highly recommended to use this thalamocortical tractography atlas with the same autotrack parameters validated here for participant-specific tracking. These parameters include `–-otsu_threshold=0.5, –-smoothing=1, -–tolerance=10, -–tip_iteration=0, -–track_voxel_ratio=4, -–check_ending=0, and -–yield_rate=0.0000001`. Small modifications to these parameters may be beneficial/appropriate depending on the dataset, but should be validated via testing. Furthermore, modifying the tolerance parameter may be reasonable to delineate even stricter trajectory-based pathways (lower the tolerance threshold) or to allow for potential greater individual-specific differences in anatomy to emerge (increase the tolerance).
 
 ### Software Notes
 Software dependencies:
 * Direct download of DSI Studio: none
 * DSI Studio container: docker, singularity/apptainer
+
 The thalamocortical atlas has been tested with:
 * Direct download 2023.12.06 "Chen" Release on Mac, Direct download 2024.05.22 "Chen" Release on Mac 
-* Docker container versions dsistudio/dsistudio:chen-2023-02-27 and dsistudio/dsistudio:chen-2024-06-12. Compatibility in intermediate versions is assumed. Compatability with pre-release versions of Hou under testing.
+* Docker container versions dsistudio/dsistudio:chen-2023-02-27 and dsistudio/dsistudio:chen-2024-06-12. Compatibility in intermediate versions is assumed. Compatability with pre-release versions of Hou is under testing as Hou is being updated frequently.
+
 Typical install time
 * Direct download of DSI Studio: minutes
 * DSI Studio container build: ~10 min to 1 hour, depending on computing resources
