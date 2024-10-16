@@ -16,7 +16,7 @@ singularity dsistudio-chen-20230227.simg dsistudio/dsistudio:chen-2023-02-27 #fo
 ## Step 2. Reconstruct your pre-processed diffusion data with GQI to create FIB files for tracking in DSI Studio
 DSI Studio uses FIB files (*fib.gz) reconstructed with [generalized q-sampling imaging](https://pubmed.ncbi.nlm.nih.gov/20304721/) (GQI) as input to tractography. GQI models the water diffusion ODF and can be applied to both shelled and non-shelled sampling schemes. FIB files store the vector field (fiber orientations) and anisotropy information (the magnitude) required for streamline tracking. FIB files can be reconstructed with dsi studio directly ([see instructions](https://dsi-studio.labsolver.org/doc/cli_t2.html)) or using QSIRecon's *dsi_studio_gqi* workflow. 
 
-To implement GQI with [QSIRecon](https://qsirecon.readthedocs.io/en/latest/), the software can first be [installed via container](https://qsirecon.readthedocs.io/en/latest/installation.html). Once installed, the built-in reconstruction workflow [dsi_studio_gqi](https://qsirecon.readthedocs.io/en/latest/builtin_workflows.html#dsi-studio-gqi) can be run to generate a *space-T1w*_dwimap.fib.gz file, which is used as input to autotrack and the curated thalamocortical tractography atlas (accessed in Step 3). Note, QSIprep outputs will work as inputs for QSIRecon as-is. 
+To implement GQI with [QSIRecon](https://qsirecon.readthedocs.io/en/latest/), the software can first be [installed via container](https://qsirecon.readthedocs.io/en/latest/installation.html). Once installed, the built-in reconstruction workflow [dsi_studio_gqi](https://qsirecon.readthedocs.io/en/latest/builtin_workflows.html#dsi-studio-gqi) can be run to generate a *space-T1w*_dwimap.fib.gz file, which is used as input to autotrack with the curated thalamocortical tractography atlas (accessed in Step 3). Note, QSIprep outputs will work as inputs for QSIRecon as-is. 
 
 Example code for running QSIRecon's dsi_studio_gqi workflow via singularity container:
 
@@ -40,8 +40,8 @@ singularity run \
 
 ## Step 3. Access the thalamocortical tractography atlas
 The thalamocortical tractography atlas can be used to delineate atlas-defined thalamic connections in individual participant's data. The manually curated and anatomically-validated atlas consists of two key files, which are provided [on this page](https://github.com/PennLINC/thalamocortical_development/tree/main/results/thalamocortical_autotrack_template). These files include:
-1. ICBM152_adult.tt.gz : an atlas containing all individual structural connections between the thalamus and HCP-MMP cortical regions
-2. ICBM152_adult.tt.gz.txt : a list of the connections included in the atlas
+1. **ICBM152_adult.tt.gz** : an atlas containing all individual structural connections between the thalamus and HCP-MMP cortical regions
+2. **ICBM152_adult.tt.gz.txt** : a list of the connections included in the atlas
 
 To use this custom atlas within DSI Studio, these two files must be accessible within the DSI Studio software in the expected location (and with the expected names)! 
 
@@ -52,12 +52,12 @@ To use this custom atlas within DSI Studio, these two files must be accessible w
 ## Step 4. Run autotrack with the thalamocortical tractography atlas
 The thalamocortical tractography atlas can now be used as an anatomical prior to delineate thalamocortical structural pathways in your data! This process involves using DSI Studio's autotrack, a trajectory-based automated tract recognition approach.  
 
-* To run autotrack via the command-line using a downloaded version of DSI Studio, you can follow the general autotrack instructions provided [here](https://dsi-studio.labsolver.org/doc/cli_atk.html) using the specific command provided below. To track all possible thalamocortical connections, can run the command below specifying --track_id=thalamus. To reconstruct one (or a subset) of connections, you can specify a more specific track_id based on the list of connection names in ICBM152_adult.tt.gz.txt (for example --track_id=thalamus-R_4-autotrack).
+* To run autotrack via the command-line using a downloaded version of DSI Studio, you can follow the general autotrack instructions provided [here](https://dsi-studio.labsolver.org/doc/cli_atk.html) and use the specific command provided below. To track all possible thalamocortical connections, run the command below specifying --track_id=thalamus. To reconstruct one (or a subset) of connections, you can specify a more specific track_id based on the list of connection names in ICBM152_adult.tt.gz.txt (for example --track_id=thalamus-R_4-autotrack,thalamus-L_V1-autotrack).
 
 ```bash
-dsi_studio --action=atk --source=*.fib.gz --track_id=thalamus --otsu_threshold=0.5 --smoothing=1 --tolerance=10 --tip_iteration=0 --track_voxel_ratio=4 --check_ending=0 --export_stat=1 --export_trk=1 --yield_rate=0.0000001 --export_template_trk=1  --overwrite=1 #command line arguments described below
+dsi_studio --action=atk --source=$subid.fib.gz --track_id=thalamus --otsu_threshold=0.5 --smoothing=1 --tolerance=10 --tip_iteration=0 --track_voxel_ratio=4 --check_ending=0 --export_stat=1 --export_trk=1 --yield_rate=0.0000001 --export_template_trk=1 --overwrite=1 #these command line arguments are described below
 ```
-* To run autotrack using a DSI Studio container, the following call can be adapted:
+* To run autotrack using a DSI Studio container, the following template call can be used:
 
 ```bash
 singularity exec --cleanenv --containall \ 
@@ -84,12 +84,12 @@ singularity exec --cleanenv --containall \
 
 Depending on the computing environment and thalamocortical connection, it may take between a few to ~20 minutes to reconstruct a given connection. On a computing cluster with ample resources (e.g. 8-10 cores), all thalamocortical connections can be reconstructed for one scan in approximately 7-10 hours. On a stand-alone desktop computer, it may take up to a few days.
  
-Autotrack outputs are written (by default) to the $DATA_DIR with the .fib.gz file used as the source for tracking. Within this $DATA_DIR, a directory is created for each individual thalamocortical connection and will be named thalamus-$hemi_$HCPMMPregion-autotrack. Three files will exist in each connection's directory:
-1. $subid.thalamus-$hemi_$HCPMMPregion-autotrack.tt.gz, the structural connection in subject space,
-2. T_$subid.thalamus-$hemi_$HCPMMPregion-autotrack.tt.gz, the structural connection in template space,
+Autotrack outputs are written (by default) to the $DATA_DIR where the source .fib.gz file exists. Within this $DATA_DIR, a directory is created for each individual thalamocortical connection that is named thalamus-$hemi_$corticalregion-autotrack; the cortical region names correspond to those in the HCP-MMP parcellation. Three files will exist in each connection's directory:
+1. $subid.thalamus-$hemi_$corticalregion-autotrack.tt.gz, the structural connection in subject space
+2. T_$subid.thalamus-$hemi_$corticalregion-autotrack.tt.gz, the structural connection in template space
 3. $subid.thalamus-$hemi_$HCPMMPregion-autotrack.stat.txt, a file with tract macrostructural and microstructure statistics
 
-** Note, it is highly recommended that begin by using this thalamocortical tractography atlas with the same autotrack parameters validated here for participant-specific tracking. These parameters include –otsu_threshold=0.5, –smoothing=1, –tolerance=10, –tip_iteration=0, –track_voxel_ratio=4, –check_ending=0, and –yield_rate=0.0000001. Small modifications to these parameters may be beneficial depending on the dataset, but should be validated via testing. Furthermore, modifying the tolerance parameter may be reasonable to delineate even stricter trajectory-based pathways (lower the tolerance threshold) or to allow for potential greater individual-specific differences in anatomy to emerge (increase the tolerance).
+** Note, it is highly recommended to use this thalamocortical tractography atlas with the same autotrack parameters validated here for participant-specific tracking. These parameters include `–-otsu_threshold=0.5, –-smoothing=1, -–tolerance=10, -–tip_iteration=0, -–track_voxel_ratio=4, -–check_ending=0, and -–yield_rate=0.0000001. Small modifications to these parameters may be beneficial/appropriate depending on the dataset, but should be validated via testing. Furthermore, modifying the tolerance parameter may be reasonable to delineate even stricter trajectory-based pathways (lower the tolerance threshold) or to allow for potential greater individual-specific differences in anatomy to emerge (increase the tolerance).
 
 ### Software Notes
 Software dependencies:
