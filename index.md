@@ -18,7 +18,7 @@ Bart Larsen, Aaron F. Alexander-Bloch, Michael J. Arcaro, Deanna M. Barch, Dani 
 December 2022
 
 ### Current Project Status
-Manuscript in preparation
+Manuscript under review
 
 ### Datasets
 PNC, HCPD, HBN
@@ -27,7 +27,7 @@ PNC, HCPD, HBN
 https://github.com/PennLINC/thalamocortical_development
 
 ### Atlas of Human Thalamocortical Connections
-The thalamocortical tractometry atlas is available [here](https://github.com/PennLINC/thalamocortical_development/tree/main/results/thalamocortical_autotrack_template). See below for implementation instructions 
+The curated thalamocortical tractography atlas is available [here!](https://github.com/PennLINC/thalamocortical_development/tree/main/results/thalamocortical_autotrack_template). Detailed implementation instructions are provided for applying this tractography atlas to study thalamocortical connectivity in new data. 
 
 ### Cubic Project Directory
 The project directory on cubic is: **/cbica/projects/thalamocortical_development**
@@ -199,11 +199,13 @@ Code investigating alignment of developmental and environmental effects to the S
 
 The following external software was used in this project:
 * qsiprep versions 0.14.2 and 0.16.1 https://hub.docker.com/r/pennbbl/qsiprep
-* dsistudio container, installed via singularity with [/software_installation/build_dsistudio_image.sh](https://github.com/PennLINC/thalamocortical_development/blob/main/software_installation/build_dsistudio_image.sh)
+* dsistudio container version chen-2023-02-27, installed via singularity with [/software_installation/build_dsistudio_image.sh](https://github.com/PennLINC/thalamocortical_development/blob/main/software_installation/build_dsistudio_image.sh) and accessible [here](https://hub.docker.com/layers/dsistudio/dsistudio/chen-2023-02-27/images/sha256-96cee3c7ea03a7a8d12d675358832c096b1921ed4a8386884a733a17d99a7aec?context=explore)
 * datalad version 0.18.1, installed via anaconda
 * connectome workbench v.1.5.0, downloaded from [humanconnectome.org](https://www.humanconnectome.org/software/get-connectome-workbench#download) into /software/workbench
 * rotate_parcellation algorithm for parcel-based spin testing, cloned from the [rotate_parcellation github](https://github.com/frantisekvasa/rotate_parcellation/tree/master) into /software/rotate_parcellation
 * freesurfer version 6.0.0 (freesurfer-Darwin-OSX-stable-pub-v6.0.0-2beb96c), downloadable from [freesurfer's older releases archives](https://surfer.nmr.mgh.harvard.edu/pub/dist/freesurfer/6.0.0/)
 * R version 4.2.3; packages: dplyr, plyr, tidyr, tidyverse, purrr, tibble, mgcv, gratia, ggplot2, ggseg, ggsegGlasser, ggnewscale, scales, cifti, PupillometryR, car, rstatix, Hmisc, matrixStats, cocor, reshape2, EnvStats, neuroCombat, datawizard
+
+Analyses were conducted on the CUBIC cluster at the University of Pennsylvania, a RedHat Enterprise Linux-based HPC cluster.
 
 And Fin :) 
