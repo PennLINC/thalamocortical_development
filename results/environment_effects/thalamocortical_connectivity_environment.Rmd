@@ -46,8 +46,11 @@ S-A axis
 S.A.axis.cifti <- read_cifti("/cbica/projects/thalamocortical_development//Maps/S-A_ArchetypalAxis/FSLRVertex/SensorimotorAssociation_Axis_parcellated/SensorimotorAssociation.Axis.Glasser360.pscalar.nii") #S-A_ArchetypalAxis repo
 S.A.axis <- data.frame(SA.axis = rank(S.A.axis.cifti$data), orig_parcelname = names(S.A.axis.cifti$Parcel))
 S.A.axis <- merge(S.A.axis, glasser.regions, by = "orig_parcelname")
-S.A.axis$SA.axis.bin <- as.numeric(cut2(S.A.axis$SA.axis, g = 5))
+S.A.axis$SA.axis.bin <- as.numeric(cut2(S.A.axis$SA.axis, g = 5)) #bins for quintile enrichment analysis
 SA.colorvector <- c("#FFC228", "#FFD16A", "#e9dcf2", "#BE93C4", "#6F1382") #colors to use for plotting for each of the 5 quintiles
+
+S.A.axis$SA.axis.quartile <- as.numeric(cut2(S.A.axis$SA.axis, g = 4)) #quartiles for sensitivity enrichment
+S.A.axis$SA.axis.decile <- as.numeric(cut2(S.A.axis$SA.axis, g = 10)) #deciles for sensitivity enrichment
 ```
 
 Environment statistics
@@ -82,7 +85,7 @@ tractlist.pnc <- read.csv("/cbica/projects/thalamocortical_development/thalamoco
 tractlist.hcpd <- read.csv("/cbica/projects/thalamocortical_development/thalamocortical_structuralconnectivity/individual/HCPD/HCPD_tractlist_primary.csv") 
 ```
 
-# Associations between Neighborhood and Household SES and Thalamocortical Connectivity
+# Associations Between Neighborhood and Household SES and Thalamocortical Connectivity
 
 ## Number of significant environmental effects 
 
@@ -126,9 +129,10 @@ envSES_maineffects_FA_glasser_pnc <- envSES_maineffects_FA_glasser_pnc %>%
 sigeffects.df <- envSES_maineffects_FA_glasser_pnc %>% filter(significant == TRUE)
 
 sigeffects.positivet.df <- sigeffects.df %>% 
-  filter(GAM.cov.tvalue> 0) %>% 
+  filter(GAM.cov.tvalue > 0) %>% 
   left_join(glasser.regions, ., by = "tract") %>%
   select(label, tract, GAM.cov.tvalue)
+
 sigeffects.positivet.df$tractlist <- sigeffects.positivet.df$tract %in% tractlist.pnc$tract
 
 ggplot() + 
@@ -293,7 +297,7 @@ plot_trajectories_byenv_SAaxis(quintile = 5, break.points = c(0.34, 0.35, 0.36, 
 ggsave(filename = "/cbica/projects/thalamocortical_development/figures/images/Figure7/Devtrajectory_byenvSES_quintile5.pdf", device = "pdf", dpi = 500, width = 1.24 , height = 1)
 ```
 
-# Neighborhood Environment Effects Vary across the Sensorimotor-Association Axis
+# Neighborhood Environment Effects Vary Across the Sensorimotor-Association Axis
 
 ## S-A axis correlation
 
@@ -318,6 +322,7 @@ perm.sphere.p(x = spin.data$SA.axis, y = spin.data$GAM.cov.tvalue, perm.id = per
 ggplot() +
   geom_point(data = spin.data, aes(x = SA.axis, y = GAM.cov.tvalue, color = SA.axis), size = 0.5) +
   geom_smooth(data = spin.data, aes(x = SA.axis, y = GAM.cov.tvalue), method = "lm", color = c("black"), formula = y ~ x, linewidth = 0.2) + 
+  scale_y_continuous(limits = c(.5, 10)) +
   scale_color_gradient2(low = "goldenrod1", mid = "#ede4f5", high = "#6f1282", guide = "colorbar", aesthetics = "color", midpoint = 180) +
   theme_classic() +
   labs(x="\nS-A axis", y="Environment effect (t)") +
@@ -329,9 +334,8 @@ ggplot() +
   axis.line = element_line(linewidth = .2), 
   axis.ticks = element_line(linewidth = .2)) 
 
-ggsave(filename = "/cbica/projects/thalamocortical_development/figures/images/Figure7/EnvEffect_SArank_correlationplot.pdf", device = "pdf", dpi = 500, width = 1.6, height = 1.3)
+ggsave(filename = "/cbica/projects/thalamocortical_development/figures/images/Figure7/EnvEffect_SArank_correlationplot.pdf", device = "pdf", dpi = 500, width = 1.61, height = 1.3)
 ```
-
 
 ## Specificity test: cortical and thalamic axis correlations
 
@@ -358,7 +362,7 @@ hcp_mmp1.0 <- left_join(hcp_mmp1.0, CPt.gradient, by = "label")
 ```
 
 ```{r}
-#Function to compute the correlation between a environment map and an anatomical axis (x,y,z) as well as test the significance of the difference between the correlation with the anatomical axis versus the S-A axis
+#Function to compute the correlation between an environment map and an anatomical axis (x,y,z) as well as test the significance of the difference between the correlation with the anatomical axis versus the S-A axis
 compute_axis_correlation <- function(axis){
   df <- merge(spin.data, hcp_mmp1.0, by = "label", sort = F)
   completeobs.n <- sum(!is.na(df$GAM.cov.tvalue))
@@ -390,29 +394,17 @@ compute_axis_correlation <- function(axis){
 
 *Anterior-posterior axis*
 
-```{r, warning = F, message = F}
-ggseg(.data = hcp_mmp1.0, atlas = "glasser", mapping = aes(fill = y.mni)) + paletteer::scale_fill_paletteer_c("harrypotter::lunalovegood")
-```
-
 ```{r}
 compute_axis_correlation(axis = "y.mni")
 ```
 
 *Medial-lateral axis*
 
-```{r, warning = F, message = F}
-ggseg(.data = hcp_mmp1.0, atlas = "glasser", mapping = aes(fill = x.mni)) + paletteer::scale_fill_paletteer_c("harrypotter::lunalovegood")
-```
-
 ```{r}
 compute_axis_correlation(axis = "x.mni")
 ```
 
 *Dorsal-ventral axis*
-
-```{r, warning = F, message = F}
-ggseg(.data = hcp_mmp1.0, atlas = "glasser", mapping = aes(fill = z.mni)) + paletteer::scale_fill_paletteer_c("harrypotter::lunalovegood")
-```
 
 ```{r}
 compute_axis_correlation(axis = "z.mni")
@@ -468,7 +460,7 @@ ggsave(filename = "/cbica/projects/thalamocortical_development/figures/images/Fi
 
 ## Effect magnitude enrichment testing (S-A axis quintiles)
 
-**Mean environment effect t-value by S-A axis bin (empirical)**
+**Mean environment effect t-value by S-A axis quintile (empirical)**
 
 ```{r}
 #Calculate empirical enrichment statistic for each S-A axis bin
@@ -484,7 +476,7 @@ envSES_effects_SAaxisbins
 
 **Null distribution and enrichment testing by S-A axis quintile**
 
-```{r, include=T, eval=F}
+```{r}
 #Calculate null distribution of t-values by bin based on spherical spatial permutations (spins)
 
 ## inputs to spatially permute (i.e., spin) with the pre-computed spatial permutation matrix 
@@ -503,24 +495,6 @@ x.perm = y.perm = array(NA,dim=c(nroi,nperm)) #initialize
     }
   }
 
-## compute mean t-value for each S-A axis bin using spatially permuted x inputs 
-### set up spun (x) and empirical (y) df
-x.spatialperm <- as.data.frame(x.perm) %>% set_names(sprintf("perm%s", seq(from = 1, to = ncol(x.perm))))
-x.spatialperm.empiricaly <- cbind(y, x.spatialperm) %>% as.data.frame()
-colnames(x.spatialperm.empiricaly)[1] <- c("empirical.y")
-
-### compute mean t-values for S-A axis bins for all spins
-envSES_effects_SAaxisbins_permutedx <- sapply(x.spatialperm.empiricaly[2:ncol(x.spatialperm.empiricaly)], #for all permuted bins
-                                              function(p){
-                                                x.spatialperm.empiricaly %>% group_by(as.character(p)) %>% #group by permuted S-A axis bins
-                                                do(mean.tvalue.significant = mean(.$empirical.y, na.rm = TRUE)) %>% #calculate mean t-value
-                                                unnest(cols = c("mean.tvalue.significant")) %>% t()}) %>% 
-                                                t() %>% as.data.frame()
-                                                 
-envSES_effects_SAaxisbins_permutedx <- envSES_effects_SAaxisbins_permutedx %>% mutate_if(is.character, as.numeric) #make it numeric
-envSES_effects_SAaxisbins_permutedx <-  envSES_effects_SAaxisbins_permutedx[ , !c(TRUE,FALSE) ] 
-colnames(envSES_effects_SAaxisbins_permutedx) <- c("SA.bin1.tvalue","SA.bin2.tvalue", "SA.bin3.tvalue", "SA.bin4.tvalue", "SA.bin5.tvalue") 
-
 ## compute mean t-value for each S-A axis bin using spatially permuted y inputs 
 ### set up spun (y) and empirical (x) df
 y.spatialperm <- as.data.frame(y.perm) %>% set_names(sprintf("perm%s", seq(from = 1, to = ncol(y.perm))))
@@ -532,29 +506,21 @@ envSES_effects_SAaxisbins_permutedy <- y.spatialperm.empiricalx %>% group_by(emp
                                        dplyr::summarize(across(everything(), \(x) mean(x, na.rm = TRUE))) %>% #calculate mean t-value for permuted data
                                        select(-empirical.x) %>% t() %>% as.data.frame() %>%
                                        set_names(c("SA.bin1.tvalue","SA.bin2.tvalue", "SA.bin3.tvalue", "SA.bin4.tvalue", "SA.bin5.tvalue"))
-
-histogram.data <- rbind(envSES_effects_SAaxisbins_permutedx, envSES_effects_SAaxisbins_permutedy)
-saveRDS(histogram.data, "/cbica/projects/thalamocortical_development/thalamocortical_results/environment_results/envtvalue.SAbins.spatialnulls.rds")
-```
-
-```{r}
-histogram.data <- readRDS("/cbica/projects/thalamocortical_development/thalamocortical_results/environment_results/envtvalue.SAbins.spatialnulls.rds")
-envSES_effects_SAaxisbins_permutedx <- histogram.data[1:10000,]
-envSES_effects_SAaxisbins_permutedy <- histogram.data[10001:20000,]
-nperm = dim(perm.id.full)[2]
 ```
 
 ```{r}
 #Function to plot the null distribution of environment effect t-values for a given S-A axis bin and test whether the true t-value is significantly smaller or greater in magnitude than the null (permutation based p)
-enveffects_SAbin_enrichment <- function(quintile, enrichment_type){
+enveffects_SAbin_enrichment <- function(bin, enrichment_type){
   
-  SAbin.tvalue.empirical <- envSES_effects_SAaxisbins %>% filter(SA.axis.bin == quintile) %>% select(mean.tvalue.significant)
+  nperm = 10000
+  
+  SAbin.tvalue.empirical <- envSES_effects_SAaxisbins %>% filter(SA.axis.bin == bin) %>% select(mean.tvalue.significant)
   
   #Histogram
   SA.colorvector <- c("#FFC228", "#FFD16A", "#e9dcf2", "#BE93C4", "#6F1382")
   
-  null.tvalue.histogram <- histogram.data %>% select(sprintf("SA.bin%s.tvalue", quintile)) %>%
-    ggplot(aes(x = .[,1])) + geom_histogram(fill = c(SA.colorvector)[quintile]) +
+  null.tvalue.histogram <- envSES_effects_SAaxisbins_permutedy %>% select(sprintf("SA.bin%s.tvalue", bin)) %>%
+    ggplot(aes(x = .[,1])) + geom_histogram(fill = c(SA.colorvector)[bin]) +
     theme_classic() +
     geom_vline(xintercept =  SAbin.tvalue.empirical$mean.tvalue.significant, linewidth = 0.25) +
     xlab("Environment effect (t-value)") +
@@ -572,16 +538,11 @@ enveffects_SAbin_enrichment <- function(quintile, enrichment_type){
     
   #Permutation-based p
     if(enrichment_type == "smaller"){
-      p.perm.xy <- sum(envSES_effects_SAaxisbins_permutedy[,quintile] < SAbin.tvalue.empirical$mean.tvalue.significant)/nperm
-      p.perm.yx <- sum(envSES_effects_SAaxisbins_permutedx[,quintile] < SAbin.tvalue.empirical$mean.tvalue.significant)/nperm
-      perm.p <- (p.perm.xy+p.perm.yx)/2
+      perm.p <- sum(envSES_effects_SAaxisbins_permutedy[,bin] < SAbin.tvalue.empirical$mean.tvalue.significant)/nperm
     }
   
   if(enrichment_type == "larger"){
-      p.perm.xy <- sum(envSES_effects_SAaxisbins_permutedy[,quintile] > SAbin.tvalue.empirical$mean.tvalue.significant)/nperm
-      perm.p <- p.perm.xy
-      p.perm.yx <- sum(envSES_effects_SAaxisbins_permutedx[,quintile] > SAbin.tvalue.empirical$mean.tvalue.significant)/nperm
-      perm.p <- (p.perm.xy+p.perm.yx)/2
+      perm.p <- sum(envSES_effects_SAaxisbins_permutedy[,bin] > SAbin.tvalue.empirical$mean.tvalue.significant)/nperm
   }
   
   permutation.results <- list(null.tvalue.histogram, perm.p)
@@ -592,36 +553,172 @@ enveffects_SAbin_enrichment <- function(quintile, enrichment_type){
 S-A quintile 1
 
 ```{r, warning = F, message =F}
-enveffects_SAbin_enrichment(quintile = 1, enrichment_type = "smaller")
+enveffects_SAbin_enrichment(bin = 1, enrichment_type = "smaller")
 ggsave(filename = "/cbica/projects/thalamocortical_development/figures/images/Figure7/quintile1_enveffect_spins.pdf", device = "pdf", dpi = 500, width = .95, height =.9)
 ```
 
 S-A quintile 2
 
 ```{r, warning = F, message =F}
-enveffects_SAbin_enrichment(quintile = 2, enrichment_type = "smaller")
+enveffects_SAbin_enrichment(bin = 2, enrichment_type = "smaller")
 ggsave(filename = "/cbica/projects/thalamocortical_development/figures/images/Figure7/quintile2_enveffect_spins.pdf", device = "pdf", dpi = 500, width = .95, height =.9)
 ```
 
 S-A quintile 3
 
 ```{r, warning = F, message =F}
-enveffects_SAbin_enrichment(quintile = 3, enrichment_type = "smaller")
+enveffects_SAbin_enrichment(bin = 3, enrichment_type = "smaller")
 ggsave(filename = "/cbica/projects/thalamocortical_development/figures/images/Figure7/quintile3_enveffect_spins.pdf", device = "pdf", dpi = 500, width = .95, height =.9)
 ```
 
 S-A quintile 4
 
 ```{r, warning = F, message =F}
-enveffects_SAbin_enrichment(quintile = 4, enrichment_type = "larger")
+enveffects_SAbin_enrichment(bin = 4, enrichment_type = "larger")
 ggsave(filename = "/cbica/projects/thalamocortical_development/figures/images/Figure7/quintile4_enveffect_spins.pdf", device = "pdf", dpi = 500, width = .95, height =.9)
 ```
 
 S-A quintile 5
 
 ```{r, warning = F, message =F}
-enveffects_SAbin_enrichment(quintile = 5, enrichment_type = "larger")
+enveffects_SAbin_enrichment(bin = 5, enrichment_type = "larger")
 ggsave(filename = "/cbica/projects/thalamocortical_development/figures/images/Figure7/quintile5_enveffect_spins.pdf", device = "pdf", dpi = 500, width = .95, height =.9)
+```
+
+### Enrichment sensitivity test: deciles
+
+```{r}
+#Calculate empirical enrichment statistic for each S-A axis bin
+envSES_effects_SAaxisbins <- spin.data %>% 
+                             group_by(SA.axis.decile) %>% 
+                             do(mean.tvalue.significant = mean(.$GAM.cov.tvalue, na.rm = TRUE)) %>%
+                             unnest(cols = c("mean.tvalue.significant"))
+```
+
+```{r}
+#Calculate null distribution of t-values by bin based on spherical spatial permutations (spins)
+
+## inputs to spatially permute (i.e., spin) with the pre-computed spatial permutation matrix 
+x <- spin.data$SA.axis.decile #cortical map 1 to spatially permute: S-A axis bins
+y <- spin.data$GAM.cov.tvalue #cortical map 2 to spatially permute: significant envSES-thalamocortical FA t-values
+perm.id <- perm.id.full
+
+## spin the empirical data 
+nroi = dim(perm.id)[1]  #number of regions
+nperm = dim(perm.id)[2] #number of permutations
+x.perm = y.perm = array(NA,dim=c(nroi,nperm)) #initialize
+  for (r in 1:nperm) {
+    for (i in 1:nroi) {
+      x.perm[i,r] = x[perm.id[i,r]] #spinning x, spatially permuted bins
+      y.perm[i,r] = y[perm.id[i,r]] #spinning y, spatially permuted t-values
+    }
+  }
+
+## compute mean t-value for each S-A axis bin using spatially permuted y inputs 
+### set up spun (y) and empirical (x) df
+y.spatialperm <- as.data.frame(y.perm) %>% set_names(sprintf("perm%s", seq(from = 1, to = ncol(y.perm))))
+y.spatialperm.empiricalx <- cbind(x, y.spatialperm) %>% as.data.frame()
+colnames(y.spatialperm.empiricalx)[1] <- c("empirical.x")
+
+### compute mean t-values for S-A axis bins for all spins
+envSES_effects_SAaxisbins_permutedy <- y.spatialperm.empiricalx %>% group_by(empirical.x) %>% #group by empirical S-A axis bins
+                                       dplyr::summarize(across(everything(), \(x) mean(x, na.rm = TRUE))) %>% #calculate mean t-value for permuted data
+                                       select(-empirical.x) %>% t() %>% as.data.frame() %>%
+                                       set_names(c("SA.bin1.tvalue","SA.bin2.tvalue", "SA.bin3.tvalue", "SA.bin4.tvalue", "SA.bin5.tvalue", "SA.bin6.tvalue", "SA.bin7.tvalue", "SA.bin8.tvale", "SA.bin9.tvalue", "SA.bin10.tvalue"))
+```
+
+```{r}
+enveffects_SAbin_enrichment <- function(bin, enrichment_type){
+  
+  nperm = 10000
+  
+  SAbin.tvalue.empirical <- envSES_effects_SAaxisbins %>% filter(SA.axis.decile == bin) %>% select(mean.tvalue.significant)
+  
+  #Permutation-based p
+    if(enrichment_type == "smaller"){
+      perm.p <- sum(envSES_effects_SAaxisbins_permutedy[,bin] < SAbin.tvalue.empirical$mean.tvalue.significant)/nperm
+    }
+  
+  if(enrichment_type == "larger"){
+      perm.p <- sum(envSES_effects_SAaxisbins_permutedy[,bin] > SAbin.tvalue.empirical$mean.tvalue.significant)/nperm
+  }
+  
+  return(perm.p)
+}
+```
+
+S-A decile 10
+
+```{r, warning = F, message =F}
+enveffects_SAbin_enrichment(bin = 10, enrichment_type = "larger")
+```
+
+### Enrichment sensitivity test: quartiles
+
+```{r}
+#Calculate empirical enrichment statistic for each S-A axis bin
+envSES_effects_SAaxisbins <- spin.data %>% 
+                             group_by(SA.axis.quartile) %>% 
+                             do(mean.tvalue.significant = mean(.$GAM.cov.tvalue, na.rm = TRUE)) %>%
+                             unnest(cols = c("mean.tvalue.significant"))
+```
+
+```{r}
+#Calculate null distribution of t-values by bin based on spherical spatial permutations (spins)
+
+## inputs to spatially permute (i.e., spin) with the pre-computed spatial permutation matrix 
+x <- spin.data$SA.axis.quartile #cortical map 1 to spatially permute: S-A axis bins
+y <- spin.data$GAM.cov.tvalue #cortical map 2 to spatially permute: significant envSES-thalamocortical FA t-values
+perm.id <- perm.id.full
+
+## spin the empirical data 
+nroi = dim(perm.id)[1]  #number of regions
+nperm = dim(perm.id)[2] #number of permutations
+x.perm = y.perm = array(NA,dim=c(nroi,nperm)) #initialize
+  for (r in 1:nperm) {
+    for (i in 1:nroi) {
+      x.perm[i,r] = x[perm.id[i,r]] #spinning x, spatially permuted bins
+      y.perm[i,r] = y[perm.id[i,r]] #spinning y, spatially permuted t-values
+    }
+  }
+
+## compute mean t-value for each S-A axis bin using spatially permuted y inputs 
+### set up spun (y) and empirical (x) df
+y.spatialperm <- as.data.frame(y.perm) %>% set_names(sprintf("perm%s", seq(from = 1, to = ncol(y.perm))))
+y.spatialperm.empiricalx <- cbind(x, y.spatialperm) %>% as.data.frame()
+colnames(y.spatialperm.empiricalx)[1] <- c("empirical.x")
+
+### compute mean t-values for S-A axis bins for all spins
+envSES_effects_SAaxisbins_permutedy <- y.spatialperm.empiricalx %>% group_by(empirical.x) %>% #group by empirical S-A axis bins
+                                       dplyr::summarize(across(everything(), \(x) mean(x, na.rm = TRUE))) %>% #calculate mean t-value for permuted data
+                                       select(-empirical.x) %>% t() %>% as.data.frame() %>%
+                                       set_names(c("SA.bin1.tvalue","SA.bin2.tvalue", "SA.bin3.tvalue", "SA.bin4.tvalue"))
+```
+
+```{r}
+enveffects_SAbin_enrichment <- function(bin, enrichment_type){
+  
+  nperm = 10000
+  
+  SAbin.tvalue.empirical <- envSES_effects_SAaxisbins %>% filter(SA.axis.quartile == bin) %>% select(mean.tvalue.significant)
+  
+  #Permutation-based p
+    if(enrichment_type == "smaller"){
+      perm.p <- sum(envSES_effects_SAaxisbins_permutedy[,bin] < SAbin.tvalue.empirical$mean.tvalue.significant)/nperm
+    }
+  
+  if(enrichment_type == "larger"){
+      perm.p <- sum(envSES_effects_SAaxisbins_permutedy[,bin] > SAbin.tvalue.empirical$mean.tvalue.significant)/nperm
+  }
+  
+  return(perm.p)
+}
+```
+
+S-A quartile 4
+
+```{r, warning = F, message =F}
+enveffects_SAbin_enrichment(bin = 4, enrichment_type = "larger")
 ```
 
 
