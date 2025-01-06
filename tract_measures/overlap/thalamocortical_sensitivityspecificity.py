@@ -16,7 +16,7 @@ tract_names_file = "/cbica/projects/thalamocortical_development/software/thalamo
 with open(tract_names_file, 'r') as f:
 	tract_names = [line.strip() for line in f.readlines()]
 
-#Function to compute sensitivity and specificity values for each subject-specific connection based on atlas connection
+#Function to compute sensitivity and specificity values for each subject-specific connection based on atlas connection overlap
 def compute_sensitivity_specificity(sub_mask, template_mask):
 	pred_np = sitk.GetArrayFromImage(sub_mask)
 	truth_np = sitk.GetArrayFromImage(template_mask)
