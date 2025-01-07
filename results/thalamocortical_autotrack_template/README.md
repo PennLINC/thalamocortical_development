@@ -91,6 +91,18 @@ Autotrack outputs are written (by default) to the $DATA_DIR where the source .fi
 
 ** Note, it is highly recommended to use this thalamocortical tractography atlas with the same autotrack parameters validated here for participant-specific tracking. These parameters include `–-otsu_threshold=0.5, –-smoothing=1, -–tolerance=10, -–tip_iteration=0, -–track_voxel_ratio=4, -–check_ending=0, and -–yield_rate=0.0000001`. Small modifications to these parameters may be beneficial/appropriate depending on the dataset, but should be validated via testing. Furthermore, modifying the tolerance parameter may be reasonable to delineate even stricter trajectory-based pathways (lower the tolerance threshold) or to allow for potential greater individual-specific differences in anatomy to emerge (increase the tolerance).
 
+### Atlas Validation 
+
+Overview of atlas anatomical validation
+
+![](./thalamocortical_atlas_validation.png) 
+
+### Atlas Curation
+
+Examples of original and curated thalamocortical connections from the tractography atls
+
+![](./thalamocortical_atlas_curation.png) 
+
 ### Software Notes
 Software dependencies:
 * Direct download of DSI Studio: none
