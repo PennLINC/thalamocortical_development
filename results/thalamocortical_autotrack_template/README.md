@@ -93,13 +93,13 @@ Autotrack outputs are written (by default) to the $DATA_DIR where the source .fi
 
 ### Atlas Validation 
 
-Overview of atlas anatomical validation
+Examples of atlas anatomical validation
 
 ![](./thalamocortical_atlas_validation.png) 
 
 ### Atlas Curation
 
-Examples of original and curated thalamocortical connections from the tractography atls
+Examples of original and curated thalamocortical connections from the tractography atlas
 
 ![](./thalamocortical_atlas_curation.png) 
 
