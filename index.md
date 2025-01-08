@@ -198,7 +198,7 @@ To create dataframes with connection-specific sensitivity variables while exclud
 
 # DIFFUSION DATA AVAILABILITY
 
-The present work utilized existing developmental data from the PNC (https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/study.cgi?study_id=phs000607.v3.p2), the Lifespan 2.0 HCPD release (https://nda.nih.gov/ccf), and data releases 1-9 from the Healthy Brain Network (https://fcon_1000.projects.nitrc.org/indi/cmi_healthy_brain_network/). These data are publicly available for download from the provided links. We are in the process of gaining permission to release preprocessed diffusion data and derivatives for these three datasets as part of the [Reproducible Brain Charts Project](https://reprobrainchart.github.io/)! 
+This study used existing developmental data from the PNC (https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/study.cgi?study_id=phs000607.v3.p2), the Lifespan 2.0 HCPD release (https://nda.nih.gov/ccf), and data releases 1-9 from the Healthy Brain Network (https://fcon_1000.projects.nitrc.org/indi/cmi_healthy_brain_network/). These data are publicly available for download from the provided links. PennLINC is currently in the process of gaining all permissions necessary to make preprocessed diffusion data and derivatives from the PNC, HCPD, and HBN datasets publicly available. This section will be updated when data are publicly released! In the meantime, you can access processed structural and functional MRI data from these three datasets at the [Reproducible Brain Charts](https://reprobrainchart.github.io/) website.
 
 # PROJECT SOFTWARE
 
